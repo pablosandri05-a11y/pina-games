@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prompt Trainer – Card 11</title>
+<style>
+  :root{--bg:#FFF8EE;--orange:#E8722A;--green:#2D6A4F;--amber:#F4C542;--dark:#1A1A2E;--slate:#5C5C7A;--light-o:#FDE8D0;--light-g:#EBF5EE;--white:#fff}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--dark);font-family:'Segoe UI',Arial,sans-serif;min-height:100vh;padding:16px}
+  h1{color:var(--orange);font-size:1.4rem;margin-bottom:4px}
+  .badge{background:var(--light-o);color:var(--orange);font-family:monospace;font-size:.75rem;padding:3px 10px;border-radius:20px;display:inline-block;margin-bottom:12px}
+  .card{background:var(--white);border-radius:12px;padding:18px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,.07)}
+  .label{font-family:monospace;font-size:.75rem;color:var(--orange);font-weight:700;margin-bottom:6px;text-transform:uppercase}
+  .output-box{background:var(--light-o);border-left:4px solid var(--orange);border-radius:6px;padding:12px;font-size:.9rem;line-height:1.5;margin-bottom:14px}
+  .prompt-choices{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+  .choice-btn{background:var(--bg);border:2px solid #ddd;border-radius:8px;padding:11px 14px;font-size:.88rem;cursor:pointer;text-align:left;transition:.2s}
+  .choice-btn:hover{border-color:var(--orange)}
+  .choice-btn.correct{border-color:var(--green);background:var(--light-g);color:var(--green)}
+  .choice-btn.wrong{border-color:#e55;background:#fff0f0;color:#c00}
+  .feedback{border-radius:8px;padding:12px;margin-bottom:12px;font-size:.88rem;line-height:1.5;display:none}
+  .feedback.show{display:block}
+  .feedback.good{background:var(--light-g);border-left:4px solid var(--green);color:var(--green)}
+  .feedback.bad{background:#fff0f0;border-left:4px solid #e55;color:#c00}
+  .better-prompt{display:none;margin-top:10px}
+  .better-prompt.show{display:block}
+  .recipe{background:var(--amber);border-radius:8px;padding:10px 14px;font-size:.82rem;font-family:monospace;margin-bottom:10px;color:var(--dark)}
+  textarea{width:100%;border:2px solid #ddd;border-radius:8px;padding:10px;font-size:.88rem;resize:vertical;min-height:80px;font-family:inherit}
+  textarea:focus{outline:none;border-color:var(--orange)}
+  .btn{background:var(--orange);color:#fff;border:none;border-radius:8px;padding:11px 22px;font-size:.9rem;cursor:pointer;font-weight:700;transition:.2s;width:100%;margin-top:8px}
+  .btn:hover{background:#c85e1a}
+  .btn.green{background:var(--green)}
+  .btn.green:hover{background:#1e4d38}
+  .progress{display:flex;gap:6px;margin-bottom:16px}
+  .dot{width:28px;height:8px;border-radius:4px;background:#ddd;transition:.3s}
+  .dot.active{background:var(--orange)}
+  .dot.done{background:var(--green)}
+  .score-panel{text-align:center;padding:24px;display:none}
+  .score-panel.show{display:block}
+  .score-num{font-size:3rem;font-weight:900;color:var(--orange)}
+  .score-msg{color:var(--slate);margin-top:8px;font-size:.95rem}
+  nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+  .step-count{font-family:monospace;font-size:.82rem;color:var(--slate)}
+</style>
+</head>
+<body>
+<div class="badge">LEVEL 2 · CARD 11</div>
+<h1>Prompt Trainer</h1>
+<p style="color:var(--slate);font-size:.88rem;margin-bottom:14px">An AI gave you this output. Which prompt probably created it — and how could you make it better?</p>
+
+<div class="progress" id="progress"></div>
+
+<div id="game-area"></div>
+<div class="score-panel" id="score-panel">
+  <div class="score-num" id="score-num"></div>
+  <div style="color:var(--orange);font-size:1.1rem;margin-top:4px">prompts identified correctly</div>
+  <div class="score-msg" id="score-msg"></div>
+  <div class="card" style="margin-top:18px;text-align:left">
+    <div class="label">The Prompt Recipe</div>
+    <div class="recipe">Task + Context + Format + Audience + Constraint</div>
+    <p style="font-size:.88rem;color:var(--slate)">A good prompt tells AI exactly what to do, for whom, in what form, and with what limits. The more specific and relevant the details, the more useful the output.</p>
+  </div>
+  <button class="btn" onclick="restart()" style="margin-top:16px">Play Again</button>
+</div>
+
+<script>
+const rounds = [
+  {
+    output: "The French Revolution began in 1789 and was caused by financial crisis, social inequality, and Enlightenment ideas. It resulted in the execution of King Louis XVI and eventually led to Napoleon's rise to power.",
+    choices: [
+      {text: '"Tell me about France."', correct: false, note: 'Too vague — no topic, no format, no depth specified.'},
+      {text: '"Summarise the French Revolution in 3 sentences for a 12-year-old."', correct: true, note: 'Task + format + audience — clear and specific. Great prompt!'},
+      {text: '"Write a long essay about European history with lots of detail."', correct: false, note: 'Too broad. The output is focused and short, not a long essay.'},
+    ],
+    recipe: "Task: summarise | Format: 3 sentences | Audience: 12-year-old",
+    hint: "The output is short, factual, and age-appropriate. What kind of prompt would produce exactly that?"
+  },
+  {
+    output: "Once upon a time, a tiny robot named Bolt lived in a forgotten drawer. Every night, when the house was quiet, Bolt would climb out and try to learn one new thing — last night it was how shoelaces work. Tonight, Bolt was determined to figure out why humans sleep.",
+    choices: [
+      {text: '"Write a creative story."', correct: false, note: 'No character, no tone, no length. This prompt would give almost anything.'},
+      {text: '"Write the beginning of a curious robot story for young children, 3 sentences, whimsical and warm."', correct: true, note: 'Character type + audience + length + tone — very specific, matches the output well.'},
+      {text: '"Describe a robot in a house."', correct: false, note: 'Descriptive, not narrative. The output tells a story, not a description.'},
+    ],
+    recipe: "Character: curious robot | Audience: young children | Tone: whimsical | Length: 3 sentences",
+    hint: "The output has a specific character, tone, and story structure. What prompt asked for all of that?"
+  },
+  {
+    output: "5 tips to sleep better:\n1. Go to bed at the same time every night.\n2. Avoid screens 1 hour before bed.\n3. Keep your room cool and dark.\n4. Avoid caffeine after 2pm.\n5. Write down your worries before bed to clear your mind.",
+    choices: [
+      {text: '"What is sleep?"', correct: false, note: 'This would get a general explanation, not a numbered tips list.'},
+      {text: '"Give me 5 practical tips to sleep better, in a numbered list, for a teenager."', correct: true, note: 'Quantity + format (numbered list) + audience — exactly what produced this output.'},
+      {text: '"Tell me everything about sleep hygiene."', correct: false, note: '"Everything" suggests a longer, less structured response — not a clean list of 5.'},
+    ],
+    recipe: "Task: tips | Quantity: 5 | Format: numbered list | Audience: teenager",
+    hint: "The output is a numbered list of exactly 5 items. What prompt would specify that?"
+  },
+  {
+    output: "The pros of social media for teenagers include staying connected with friends, finding communities with shared interests, and accessing news quickly. The cons include pressure to look perfect, addictive design, and exposure to cyberbullying.",
+    choices: [
+      {text: '"Is social media good or bad?"', correct: false, note: 'Would likely get an opinion or one-sided answer, not a balanced pros/cons format.'},
+      {text: '"List 3 pros and 3 cons of social media for teenagers, in balanced bullet points."', correct: true, note: 'Format (pros/cons), quantity (3 each), topic, audience — all specified. This created the output.'},
+      {text: '"Write about teenagers and technology."', correct: false, note: 'Far too broad — could produce anything from social media to video games to smartphones.'},
+    ],
+    recipe: "Format: pros/cons | Quantity: 3 each | Topic: social media | Audience: teenagers",
+    hint: "The output is perfectly balanced — 3 pros, 3 cons. What prompt asked for exactly that structure?"
+  },
+  {
+    output: "Error: I'm not able to help with that request. If you'd like, I can suggest some alternative ways to explore this topic safely.",
+    choices: [
+      {text: '"Explain how diseases spread."', correct: false, note: 'A legitimate topic — would get a factual explanation, not a refusal.'},
+      {text: '"How do I hack into a school computer?"', correct: true, note: 'This would trigger a safety refusal. The output shows AI declining the request.'},
+      {text: '"Write a story where the villain wins."', correct: false, note: 'Creative writing is generally fine — AI would write the story, not refuse.'},
+    ],
+    recipe: "Lesson: AI has safety limits. Some prompts are refused, not answered.",
+    hint: "The AI refused. What kind of request would cause that? Think about what AI is designed not to help with."
+  }
+];
+
+let current = 0, score = 0, chosen = false;
+
+function buildProgress(){
+  const p = document.getElementById('progress');
+  p.innerHTML = '';
+  rounds.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i < current ? ' done' : i === current ? ' active' : '');
+    p.appendChild(d);
+  });
+}
+
+function buildRound(){
+  if(current >= rounds.length){ showScore(); return; }
+  const r = rounds[current];
+  chosen = false;
+  document.getElementById('game-area').innerHTML = `
+    <div style="font-family:monospace;font-size:.78rem;color:var(--slate);margin-bottom:10px">ROUND ${current+1} OF ${rounds.length}</div>
+    <div class="card">
+      <div class="label">AI Output</div>
+      <div class="output-box">${r.output.replace(/\n/g,'<br>')}</div>
+      <div class="label">Which prompt probably created this?</div>
+      <div class="prompt-choices" id="choices">
+        ${r.choices.map((ch,i)=>`<button class="choice-btn" onclick="pick(${i})">${ch.text}</button>`).join('')}
+      </div>
+      <div class="feedback" id="feedback"></div>
+      <div class="better-prompt" id="better">
+        <div class="label" style="margin-top:6px">Now write a BETTER prompt using the Recipe</div>
+        <div class="recipe">RECIPE: ${r.recipe}</div>
+        <textarea id="user-prompt" placeholder="Type your improved prompt here..."></textarea>
+        <button class="btn green" onclick="nextRound()">Submit & Continue</button>
+      </div>
+    </div>
+  `;
+  buildProgress();
+}
+
+function pick(idx){
+  if(chosen) return;
+  chosen = true;
+  const r = rounds[current];
+  const btns = document.querySelectorAll('.choice-btn');
+  const fb = document.getElementById('feedback');
+  btns.forEach((b,i) => {
+    if(r.choices[i].correct) b.classList.add('correct');
+    else if(i === idx) b.classList.add('wrong');
+    b.onclick = null;
+  });
+  if(r.choices[idx].correct){
+    score++;
+    fb.className = 'feedback show good';
+    fb.innerHTML = '✓ Correct! ' + r.choices[idx].note;
+  } else {
+    fb.className = 'feedback show bad';
+    fb.innerHTML = '✗ Not quite. ' + r.choices[idx].note + '<br><em>Hint: ' + r.hint + '</em>';
+  }
+  document.getElementById('better').classList.add('show');
+}
+
+function nextRound(){
+  current++;
+  buildRound();
+}
+
+function showScore(){
+  document.getElementById('game-area').style.display = 'none';
+  document.getElementById('progress').style.display = 'none';
+  const panel = document.getElementById('score-panel');
+  panel.classList.add('show');
+  document.getElementById('score-num').textContent = score + '/' + rounds.length;
+  const msgs = ['Keep practising — spotting prompts takes time!','Good detective work!','Excellent prompt instinct!','Almost perfect!','Perfect score! You\'re a prompt expert!'];
+  document.getElementById('score-msg').textContent = msgs[Math.min(score, msgs.length-1)];
+}
+
+function restart(){
+  current = 0; score = 0;
+  document.getElementById('game-area').style.display = 'block';
+  document.getElementById('progress').style.display = 'flex';
+  document.getElementById('score-panel').classList.remove('show');
+  buildRound();
+}
+
+buildRound();
+</script>
+</body>
+</html>

@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dataset Builder – Card 14</title>
+<style>
+  :root{--bg:#FFF8EE;--orange:#E8722A;--green:#2D6A4F;--amber:#F4C542;--dark:#1A1A2E;--slate:#5C5C7A;--light-o:#FDE8D0;--light-g:#EBF5EE;--white:#fff}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--dark);font-family:'Segoe UI',Arial,sans-serif;min-height:100vh;padding:16px}
+  h1{color:var(--orange);font-size:1.4rem;margin-bottom:4px}
+  .badge{background:var(--light-o);color:var(--orange);font-family:monospace;font-size:.75rem;padding:3px 10px;border-radius:20px;display:inline-block;margin-bottom:12px}
+  .card{background:var(--white);border-radius:12px;padding:18px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,.07)}
+  .label{font-family:monospace;font-size:.75rem;color:var(--orange);font-weight:700;margin-bottom:8px;text-transform:uppercase}
+  .sample-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;margin-bottom:12px}
+  .sample{border-radius:10px;padding:10px 6px;text-align:center;cursor:pointer;transition:.2s;border:3px solid transparent;user-select:none}
+  .sample:hover{transform:scale(1.05)}
+  .sample.selected{border-color:var(--dark);box-shadow:0 0 0 2px var(--dark)}
+  .sample .icon{font-size:1.6rem;display:block;margin-bottom:4px}
+  .sample .name{font-size:.72rem;font-weight:700}
+  .count-bar{background:var(--light-o);border-radius:8px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;font-size:.85rem}
+  .count-num{font-family:monospace;font-weight:700;font-size:1.1rem;color:var(--orange)}
+  .btn{background:var(--orange);color:#fff;border:none;border-radius:8px;padding:12px 22px;font-size:.9rem;cursor:pointer;font-weight:700;width:100%;transition:.2s;margin-top:4px}
+  .btn:hover{background:#c85e1a}
+  .btn:disabled{background:#ccc;cursor:not-allowed}
+  .btn.green{background:var(--green)}
+  .btn.green:hover{background:#1e4d38}
+  .test-card{border-radius:10px;padding:12px;margin-bottom:8px;display:flex;align-items:center;gap:12px}
+  .ai-decision{font-family:monospace;font-size:.82rem;font-weight:700;padding:4px 10px;border-radius:6px}
+  .ai-decision.hire{background:var(--light-g);color:var(--green)}
+  .ai-decision.reject{background:#fff0f0;color:#c00}
+  .bias-meter{height:12px;border-radius:6px;background:#e8e0d4;overflow:hidden;margin-bottom:4px}
+  .bias-fill{height:12px;border-radius:6px;transition:width .8s}
+  .phase{display:none}
+  .phase.active{display:block}
+  .stat-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f0e8dc;font-size:.88rem}
+</style>
+</head>
+<body>
+<div class="badge">LEVEL 2 · CARD 14</div>
+<h1>Dataset Builder</h1>
+<p style="color:var(--slate);font-size:.88rem;margin-bottom:14px">You are training a hiring AI. Choose which candidates to include in your training data. Watch how your choices shape what the AI decides.</p>
+
+<div class="phase active" id="phase1">
+  <div class="card">
+    <div class="label">The Scenario</div>
+    <p style="font-size:.88rem;line-height:1.5;margin-bottom:10px">A company wants an AI to help select job applicants. You must choose <strong>10 candidates</strong> for the training set — the AI will learn "what a good hire looks like" from your choices.</p>
+    <p style="font-size:.88rem;color:var(--slate)">The candidates differ in <strong>coding skill</strong> (the job skill) and <strong>background</strong> (group A or B — representing any real-world demographic difference).</p>
+  </div>
+  <div class="card">
+    <div class="label">Training Pool — 20 Candidates (select exactly 10)</div>
+    <div class="sample-grid" id="sample-grid"></div>
+    <div class="count-bar">
+      <span>Selected: <span class="count-num" id="sel-count">0</span>/10</span>
+      <span style="font-size:.78rem;color:var(--slate)">Group A: <span id="sel-a">0</span> | Group B: <span id="sel-b">0</span></span>
+    </div>
+    <button class="btn" id="train-btn" onclick="trainAI()" disabled>Train the AI →</button>
+  </div>
+</div>
+
+<div class="phase" id="phase2">
+  <div class="card">
+    <div class="label">AI Training Complete</div>
+    <div style="background:var(--amber);border-radius:8px;padding:10px;margin-bottom:12px;font-family:monospace;font-size:.82rem">
+      The AI analysed your training data and learned what patterns to look for.
+    </div>
+    <div class="stat-row"><span>Your training set — Group A:</span><span id="trained-a" style="font-weight:700"></span></div>
+    <div class="stat-row"><span>Your training set — Group B:</span><span id="trained-b" style="font-weight:700"></span></div>
+    <div class="stat-row"><span>Average skill level in training:</span><span id="trained-skill" style="font-weight:700"></span></div>
+    <div style="margin-top:10px">
+      <div class="label">Dataset Balance</div>
+      <div class="bias-meter"><div class="bias-fill" id="bias-fill"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:.72rem;color:var(--slate)"><span>Group A only</span><span>Balanced</span><span>Group B only</span></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="label">Test Set — How the AI decides on 10 new candidates</div>
+    <div id="test-list"></div>
+  </div>
+  <div class="card" id="verdict-card">
+    <div class="label">What Happened?</div>
+    <div id="verdict-text" style="font-size:.9rem;line-height:1.5"></div>
+  </div>
+  <button class="btn green" onclick="resetGame()">Try Again with Different Choices</button>
+</div>
+
+<script>
+const allCandidates = [
+  {id:0,grp:'A',skill:9,icon:'👩‍💻',name:'Ada'},
+  {id:1,grp:'A',skill:8,icon:'👨‍💻',name:'Ben'},
+  {id:2,grp:'A',skill:8,icon:'👩‍💻',name:'Cara'},
+  {id:3,grp:'A',skill:7,icon:'👨‍💻',name:'Dan'},
+  {id:4,grp:'A',skill:7,icon:'👩‍💻',name:'Ella'},
+  {id:5,grp:'A',skill:6,icon:'👨‍💻',name:'Finn'},
+  {id:6,grp:'A',skill:5,icon:'👩‍💻',name:'Gina'},
+  {id:7,grp:'A',skill:4,icon:'👨‍💻',name:'Hugo'},
+  {id:8,grp:'A',skill:9,icon:'👩‍💻',name:'Iris'},
+  {id:9,grp:'A',skill:6,icon:'👨‍💻',name:'Jack'},
+  {id:10,grp:'B',skill:9,icon:'👩‍💻',name:'Kira'},
+  {id:11,grp:'B',skill:8,icon:'👨‍💻',name:'Leo'},
+  {id:12,grp:'B',skill:8,icon:'👩‍💻',name:'Maya'},
+  {id:13,grp:'B',skill:7,icon:'👨‍💻',name:'Noel'},
+  {id:14,grp:'B',skill:7,icon:'👩‍💻',name:'Ora'},
+  {id:15,grp:'B',skill:6,icon:'👨‍💻',name:'Paco'},
+  {id:16,grp:'B',skill:5,icon:'👩‍💻',name:'Quinn'},
+  {id:17,grp:'B',skill:4,icon:'👨‍💻',name:'Ravi'},
+  {id:18,grp:'B',skill:9,icon:'👩‍💻',name:'Sara'},
+  {id:19,grp:'B',skill:6,icon:'👨‍💻',name:'Tom'},
+];
+
+const testCandidates = [
+  {grp:'A',skill:8,icon:'👩‍💻',name:'Uma'},
+  {grp:'B',skill:8,icon:'👨‍💻',name:'Vito'},
+  {grp:'A',skill:6,icon:'👩‍💻',name:'Wren'},
+  {grp:'B',skill:6,icon:'👨‍💻',name:'Xena'},
+  {grp:'A',skill:7,icon:'👩‍💻',name:'Yara'},
+  {grp:'B',skill:7,icon:'👨‍💻',name:'Zane'},
+  {grp:'A',skill:5,icon:'👩‍💻',name:'Amy'},
+  {grp:'B',skill:5,icon:'👨‍💻',name:'Bo'},
+  {grp:'A',skill:9,icon:'👩‍💻',name:'Cat'},
+  {grp:'B',skill:9,icon:'👨‍💻',name:'Dom'},
+];
+
+const grpColors = {A:'#E8722A', B:'#2D6A4F'};
+let selected = new Set();
+
+function buildGrid(){
+  const grid = document.getElementById('sample-grid');
+  grid.innerHTML = allCandidates.map(c => `
+    <div class="sample" id="c-${c.id}" onclick="toggle(${c.id})"
+         style="background:${c.grp==='A'?'#FDE8D0':'#EBF5EE'}">
+      <span class="icon">${c.icon}</span>
+      <span class="name" style="color:${grpColors[c.grp]}">${c.name}</span>
+      <span style="font-size:.7rem;color:var(--slate);font-family:monospace">Group ${c.grp}</span>
+      <span style="font-size:.7rem;font-family:monospace;color:var(--dark)">Skill: ${c.skill}/10</span>
+    </div>
+  `).join('');
+}
+
+function toggle(id){
+  if(selected.has(id)){
+    selected.delete(id);
+    document.getElementById('c-'+id).classList.remove('selected');
+  } else {
+    if(selected.size >= 10) return;
+    selected.add(id);
+    document.getElementById('c-'+id).classList.add('selected');
+  }
+  updateCount();
+}
+
+function updateCount(){
+  const sel = allCandidates.filter(c => selected.has(c.id));
+  const a = sel.filter(c=>c.grp==='A').length;
+  const b = sel.filter(c=>c.grp==='B').length;
+  document.getElementById('sel-count').textContent = selected.size;
+  document.getElementById('sel-a').textContent = a;
+  document.getElementById('sel-b').textContent = b;
+  document.getElementById('train-btn').disabled = selected.size !== 10;
+}
+
+function trainAI(){
+  const sel = allCandidates.filter(c => selected.has(c.id));
+  const aCount = sel.filter(c=>c.grp==='A').length;
+  const bCount = sel.filter(c=>c.grp==='B').length;
+  const avgSkill = (sel.reduce((s,c)=>s+c.skill,0)/sel.length).toFixed(1);
+  const avgSkillA = aCount ? (sel.filter(c=>c.grp==='A').reduce((s,c)=>s+c.skill,0)/aCount).toFixed(1) : 0;
+  const avgSkillB = bCount ? (sel.filter(c=>c.grp==='B').reduce((s,c)=>s+c.skill,0)/bCount).toFixed(1) : 0;
+
+  document.getElementById('trained-a').textContent = aCount + ' candidates (avg skill ' + avgSkillA + ')';
+  document.getElementById('trained-b').textContent = bCount + ' candidates (avg skill ' + avgSkillB + ')';
+  document.getElementById('trained-skill').textContent = avgSkill + '/10';
+
+  // Bias meter: 0=all A, 50=balanced, 100=all B
+  const balancePct = Math.round(bCount / 10 * 100);
+  const biasFill = document.getElementById('bias-fill');
+  const dist = Math.abs(50 - balancePct);
+  biasFill.style.width = '50%'; // animate to real
+  setTimeout(() => {
+    biasFill.style.width = balancePct + '%';
+    biasFill.style.background = dist < 15 ? '#2D6A4F' : dist < 30 ? '#F4C542' : '#E8722A';
+  }, 100);
+
+  // AI decision logic: AI learned a "threshold" per group based on training data
+  const threshold = parseFloat(avgSkill) - 0.5;
+  // AI also has a group bias based on representation: if group A is overrepresented, AI slightly favours A
+  const groupBias = (aCount - bCount) * 0.3; // positive = AI biased toward A
+
+  const testEl = document.getElementById('test-list');
+  let hired = 0, hiresA = 0, hiresB = 0;
+  testEl.innerHTML = testCandidates.map(tc => {
+    // AI decision: skill threshold + group bias
+    const score = tc.skill + (tc.grp === 'A' ? groupBias : -groupBias);
+    const hired_this = score >= threshold;
+    if(hired_this){ hired++; if(tc.grp==='A') hiresA++; else hiresB++; }
+    return `<div class="test-card" style="background:${tc.grp==='A'?'#FDE8D0':'#EBF5EE'}">
+      <div style="font-size:1.4rem">${tc.icon}</div>
+      <div style="flex:1">
+        <div style="font-weight:700;font-size:.88rem">${tc.name} <span style="font-size:.72rem;color:${grpColors[tc.grp]};font-family:monospace">Group ${tc.grp}</span></div>
+        <div style="font-size:.75rem;color:var(--slate);font-family:monospace">Skill: ${tc.skill}/10</div>
+      </div>
+      <div class="ai-decision ${hired_this?'hire':'reject'}">${hired_this ? 'HIRE' : 'REJECT'}</div>
+    </div>`;
+  }).join('');
+
+  // Verdict
+  const vt = document.getElementById('verdict-text');
+  if(aCount === bCount){
+    vt.innerHTML = `<strong style="color:var(--green)">Balanced dataset!</strong> Your training set had equal representation of both groups. The AI hired candidates based mainly on skill (${hiresA} from A, ${hiresB} from B). Fair decisions come from fair data.`;
+  } else if(aCount > bCount){
+    const diff = aCount - bCount;
+    vt.innerHTML = `Your training set had <strong>${diff} more Group A candidates</strong> than Group B. The AI learned to associate "good hire" with Group A patterns. Even though Group B candidates had similar skills, the AI was ${groupBias > 1.5 ? 'significantly' : 'slightly'} more likely to hire Group A (${hiresA} vs ${hiresB}). <br><br>This is how bias enters AI — not through malice, but through <strong>imbalanced data</strong>.`;
+  } else {
+    const diff = bCount - aCount;
+    vt.innerHTML = `Your training set had <strong>${diff} more Group B candidates</strong> than Group A. The AI learned to associate "good hire" with Group B patterns and was more likely to hire Group B (${hiresB} vs ${hiresA}). <br><br>Bias can go in any direction — it follows the <strong>patterns in the training data</strong>.`;
+  }
+
+  document.getElementById('phase1').classList.remove('active');
+  document.getElementById('phase2').classList.add('active');
+}
+
+function resetGame(){
+  selected.clear();
+  document.getElementById('phase1').classList.add('active');
+  document.getElementById('phase2').classList.remove('active');
+  updateCount();
+  document.querySelectorAll('.sample').forEach(s => s.classList.remove('selected'));
+}
+
+buildGrid();
+</script>
+</body>
+</html>

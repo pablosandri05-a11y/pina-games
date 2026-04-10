@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Theatre Machine – Card 20</title>
+<style>
+  :root{--bg:#0F1729;--teal:#00D4AA;--coral:#FF6B6B;--gold:#FFD166;--txt:#F0F4FF;--surf:#1A2540;--muted:#8899BB;--white:#fff}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--txt);font-family:'Segoe UI',Arial,sans-serif;min-height:100vh;padding:16px}
+  h1{color:var(--teal);font-size:1.4rem;margin-bottom:4px}
+  .badge{background:rgba(0,212,170,.15);color:var(--teal);font-family:monospace;font-size:.75rem;padding:3px 10px;border-radius:20px;display:inline-block;margin-bottom:12px;border:1px solid var(--teal)}
+  .card{background:var(--surf);border-radius:12px;padding:18px;margin-bottom:14px}
+  .label{font-family:monospace;font-size:.75rem;color:var(--teal);font-weight:700;margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em}
+  select,input,textarea{width:100%;background:var(--bg);border:2px solid rgba(0,212,170,.3);border-radius:8px;padding:10px 12px;font-size:.9rem;color:var(--txt);font-family:inherit;resize:vertical}
+  select:focus,input:focus,textarea:focus{outline:none;border-color:var(--teal)}
+  select option{background:var(--bg)}
+  .btn{background:var(--teal);color:var(--bg);border:none;border-radius:8px;padding:12px 22px;font-size:.9rem;cursor:pointer;font-weight:700;width:100%;margin-top:10px;transition:.2s}
+  .btn:hover{background:#00b892}
+  .btn.coral{background:var(--coral);color:#fff}
+  .btn.outline{background:rgba(0,212,170,.1);color:var(--teal);border:1px solid var(--teal)}
+  .monologue-box{background:var(--bg);border-radius:10px;padding:18px;border-left:4px solid var(--gold);font-size:.92rem;line-height:2;font-style:italic;margin-bottom:14px;position:relative}
+  .monologue-line{display:block;padding:2px 0;cursor:pointer;border-radius:4px;transition:background .15s}
+  .monologue-line:hover{background:rgba(255,209,102,.1)}
+  .monologue-line.editing{background:rgba(255,209,102,.15);border-bottom:1px solid var(--gold)}
+  .rating-wrap{display:flex;gap:8px;justify-content:center;margin:12px 0}
+  .rating-btn{width:44px;height:44px;border-radius:50%;border:2px solid rgba(0,212,170,.3);background:var(--bg);color:var(--teal);font-size:1.1rem;font-weight:700;cursor:pointer;transition:.2s;font-family:monospace}
+  .rating-btn:hover{border-color:var(--teal);background:rgba(0,212,170,.1)}
+  .rating-btn.active{border-color:var(--gold);background:rgba(255,209,102,.15);color:var(--gold)}
+  .edit-panel{display:none;background:rgba(255,209,102,.07);border-radius:8px;padding:12px;margin-top:6px;border:1px solid rgba(255,209,102,.3)}
+  .edit-panel.show{display:block}
+  .phase{display:none}
+  .phase.active{display:block}
+  .tag{display:inline-block;border-radius:4px;font-size:.7rem;font-family:monospace;padding:2px 7px;margin-right:4px}
+  .reflection-q{border-radius:8px;padding:12px;background:rgba(0,212,170,.07);border-left:3px solid var(--teal);margin-bottom:10px;font-size:.88rem;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="badge">LEVEL 3 · CARD 20</div>
+<h1>The Theatre Machine</h1>
+<p style="color:var(--muted);font-size:.88rem;margin-bottom:14px">Describe an experience or emotion. The machine generates a theatrical monologue. Then decide: does it feel like it came from inside, or outside?</p>
+
+<div class="phase active" id="phase-input">
+  <div class="card">
+    <div class="label">Your Experience</div>
+    <p style="font-size:.85rem;color:var(--muted);margin-bottom:10px">Describe a real or imagined experience or emotion — something genuinely felt. Be specific.</p>
+    <div style="margin-bottom:10px">
+      <div style="font-size:.78rem;color:var(--teal);font-family:monospace;margin-bottom:4px">CHOOSE AN EMOTION:</div>
+      <select id="emotion-select">
+        <option value="">— Select an emotion —</option>
+        <option value="loss">Losing something important</option>
+        <option value="pride">A moment of unexpected pride</option>
+        <option value="fear">A fear you can't explain</option>
+        <option value="longing">Missing somewhere or someone</option>
+        <option value="anger">Anger that felt unfair</option>
+        <option value="wonder">Seeing something for the first time</option>
+      </select>
+    </div>
+    <div style="font-size:.78rem;color:var(--teal);font-family:monospace;margin-bottom:4px">ADD A SPECIFIC DETAIL (optional):</div>
+    <input type="text" id="detail-input" placeholder="e.g. a jacket, a summer, a face, a place...">
+    <button class="btn" onclick="generate()">Generate Monologue →</button>
+  </div>
+</div>
+
+<div class="phase" id="phase-monologue">
+  <div class="card">
+    <div class="label">Generated Monologue</div>
+    <p style="font-size:.78rem;color:var(--muted);margin-bottom:10px;font-family:monospace">CLICK ANY LINE TO EDIT IT</p>
+    <div class="monologue-box" id="monologue-text"></div>
+    <div class="edit-panel" id="edit-panel">
+      <div style="font-size:.78rem;color:var(--gold);font-family:monospace;margin-bottom:6px">EDIT THIS LINE — make it feel more true:</div>
+      <textarea id="edit-input" rows="2"></textarea>
+      <button class="btn" onclick="applyEdit()" style="margin-top:6px">Apply Edit</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="label">How emotionally real does this feel?</div>
+    <p style="font-size:.85rem;color:var(--muted);margin-bottom:10px">Rate the monologue — before you edit any lines.</p>
+    <div class="rating-wrap" id="rating-wrap">
+      <button class="rating-btn" onclick="rate(1)">1</button>
+      <button class="rating-btn" onclick="rate(2)">2</button>
+      <button class="rating-btn" onclick="rate(3)">3</button>
+      <button class="rating-btn" onclick="rate(4)">4</button>
+      <button class="rating-btn" onclick="rate(5)">5</button>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:.72rem;color:var(--muted);font-family:monospace;margin-bottom:12px"><span>Felt hollow</span><span>Deeply real</span></div>
+    <button class="btn coral" onclick="showReflect()">See Reflection →</button>
+  </div>
+</div>
+
+<div class="phase" id="phase-reflect">
+  <div class="card">
+    <div class="label">Your Rating</div>
+    <div id="rating-display" style="font-size:2.5rem;text-align:center;font-family:monospace;font-weight:900;color:var(--gold);margin-bottom:8px"></div>
+    <div id="rating-commentary" style="font-size:.88rem;line-height:1.5;color:var(--muted)"></div>
+  </div>
+  <div class="card">
+    <div class="label">Lines You Edited</div>
+    <div id="edits-display"></div>
+    <div id="no-edits" style="color:var(--muted);font-size:.85rem;display:none">You didn\'t edit any lines. Interesting — what would you have changed if you had?</div>
+  </div>
+  <div class="card">
+    <div class="label">Reflection Questions</div>
+    <div class="reflection-q">What specifically felt hollow or artificial in the monologue? What word, phrase, or turn would a real person never say?</div>
+    <textarea placeholder="Your answer..." rows="2" style="margin-bottom:10px"></textarea>
+    <div class="reflection-q">If someone in a theatre performed this monologue with full commitment — and you didn\'t know it was AI-written — how would you feel about it?</div>
+    <textarea placeholder="Your answer..." rows="2" style="margin-bottom:10px"></textarea>
+    <div class="reflection-q">What does this experiment reveal about what makes writing feel emotionally true?</div>
+    <textarea placeholder="Your answer..." rows="2"></textarea>
+  </div>
+  <div class="card">
+    <div class="label">What the Research Says</div>
+    <p style="font-size:.88rem;line-height:1.5;color:var(--muted)">When people are told writing is AI-generated, they typically rate it lower emotionally — even if the text is identical to human writing. When they don\'t know the source, ratings are similar. This suggests that our emotional response to writing is partly about the text, and partly about our <strong style="color:var(--txt)">belief about who made it</strong>.</p>
+    <div style="margin-top:10px;padding:10px;background:rgba(255,107,107,.1);border-radius:8px;border-left:3px solid var(--coral);font-size:.85rem;line-height:1.5">
+      <strong style="color:var(--coral)">The open question:</strong> Does the source of an emotion matter, if the emotion is real? If a story makes you cry, does it matter that no human felt it first?
+    </div>
+  </div>
+  <button class="btn outline" onclick="restart()">Try a Different Experience</button>
+</div>
+
+<script>
+const monologues = {
+  loss:[
+    "There is an object lesson in how fast the ordinary becomes the only.",
+    "I didn't understand until afterwards — that what I thought was a moment was actually an ending.",
+    "You keep reaching for something that isn't there.",
+    "And the strange part is: the world just continued.",
+    "The street looked the same. The light looked the same.",
+    "Only I had changed, and I had changed in a direction I couldn't name.",
+    "Loss doesn't announce itself. It just — stops arriving.",
+    "One day it is simply: that thing is gone now. And the space it leaves is unreasonably large.",
+  ],
+  pride:[
+    "It was a small thing. Most important things are.",
+    "I had done something I believed was beyond me — and then I had done it anyway.",
+    "The moment sat quietly in my chest.",
+    "Not loud. Not triumphant. Just — present.",
+    "I thought: I will be able to come back here.",
+    "To this exact feeling. I will be able to remember that it was possible.",
+    "The world did not notice. The world rarely does.",
+    "But I had noticed. And that, I discovered, was sufficient.",
+  ],
+  fear:[
+    "The worst fears are the ones without objects.",
+    "At least if there is something to name, there is something to face.",
+    "But this — this was just a texture in the air.",
+    "A wrongness without a cause.",
+    "I have learned to move through it rather than away from it.",
+    "To walk into the room where it lives.",
+    "It is still there. I am still here.",
+    "We have a kind of arrangement now.",
+  ],
+  longing:[
+    "It is not that place itself, exactly.",
+    "It is what I was when I was there.",
+    "How I held things lightly.",
+    "How I believed in the possibility of afternoon.",
+    "You can go back to a place. You cannot go back to a self.",
+    "And yet I keep trying.",
+    "Standing at the edge of the familiar, waiting for a recognition that doesn't come.",
+    "Eventually you understand: you are not returning. You are just visiting the location.",
+  ],
+  anger:[
+    "There is a version of anger that is cold.",
+    "That lives in the hands.",
+    "I had been told something was acceptable that was not acceptable.",
+    "And I was expected to agree.",
+    "This is the particular anger: being asked to misname your own experience.",
+    "To say 'fine' when fine is exactly what it is not.",
+    "I did not say fine.",
+    "That was the beginning of something.",
+  ],
+  wonder:[
+    "There is a kind of seeing that happens before understanding.",
+    "Before the mind has decided what it is.",
+    "That is where wonder lives — in that half-second gap.",
+    "I saw it and did not yet know what I was seeing.",
+    "And for that moment I was purely — attending.",
+    "No language. No category. Just the fact of the thing.",
+    "Then the brain caught up and named it and it was ordinary again.",
+    "But I had been there. In that brief nameless country.",
+  ],
+};
+
+let currentEmotion = '', editsMade = [], ratingGiven = 0, editingLine = -1;
+
+function generate(){
+  const em = document.getElementById('emotion-select').value;
+  if(!em){ document.getElementById('emotion-select').focus(); return; }
+  const detail = document.getElementById('detail-input').value.trim();
+  currentEmotion = em;
+  editsMade = [];
+  ratingGiven = 0;
+  document.getElementById('phase-input').classList.remove('active');
+  document.getElementById('phase-monologue').classList.add('active');
+  const lines = [...monologues[em]];
+  if(detail){
+    // Weave in the detail to one line
+    const idx = Math.floor(Math.random() * 3) + 1;
+    lines[idx] = lines[idx].replace('.', '') + ' — of ' + detail + '.';
+  }
+  renderMonologue(lines);
+}
+
+function renderMonologue(lines){
+  document.getElementById('monologue-text').innerHTML = lines.map((l,i) => `<span class="monologue-line" id="ml-${i}" data-orig="${l.replace(/"/g,'&quot;')}" data-edited="" onclick="editLine(${i})">${l}</span><br>`).join('');
+}
+
+function editLine(i){
+  if(editingLine === i){ closeEdit(); return; }
+  editingLine = i;
+  document.querySelectorAll('.monologue-line').forEach((l,li) => l.className = 'monologue-line'+(li===i?' editing':''));
+  const orig = document.getElementById('ml-'+i).dataset.orig;
+  const edited = document.getElementById('ml-'+i).dataset.edited;
+  document.getElementById('edit-input').value = edited || orig;
+  document.getElementById('edit-panel').classList.add('show');
+}
+
+function closeEdit(){
+  editingLine = -1;
+  document.querySelectorAll('.monologue-line').forEach(l => l.className='monologue-line');
+  document.getElementById('edit-panel').classList.remove('show');
+}
+
+function applyEdit(){
+  if(editingLine < 0) return;
+  const val = document.getElementById('edit-input').value.trim();
+  const el = document.getElementById('ml-'+editingLine);
+  const orig = el.dataset.orig;
+  el.dataset.edited = val;
+  el.textContent = val;
+  if(!editsMade.find(e=>e.line===editingLine)){
+    editsMade.push({line:editingLine, orig, edited:val});
+  } else {
+    editsMade.find(e=>e.line===editingLine).edited = val;
+  }
+  closeEdit();
+}
+
+function rate(n){
+  ratingGiven = n;
+  document.querySelectorAll('.rating-btn').forEach((b,i) => b.className='rating-btn'+(i<n?' active':''));
+}
+
+function showReflect(){
+  document.getElementById('phase-monologue').classList.remove('active');
+  document.getElementById('phase-reflect').classList.add('active');
+  document.getElementById('rating-display').textContent = ratingGiven + '/5';
+  const comms = [
+    'You found it very hollow. What was missing?',
+    'Mostly hollow — the words were there but something wasn\'t.',
+    'Mixed — some moments felt real, others manufactured.',
+    'Mostly convincing — what specifically landed?',
+    'Deeply real — does knowing it was AI-generated change anything?',
+  ];
+  document.getElementById('rating-commentary').textContent = ratingGiven ? comms[ratingGiven-1] : 'You didn\'t rate it — interesting choice.';
+
+  const ed = document.getElementById('edits-display');
+  if(editsMade.length === 0){
+    ed.style.display='none';
+    document.getElementById('no-edits').style.display='block';
+  } else {
+    editsMade.forEach(e => {
+      const div = document.createElement('div');
+      div.style.marginBottom='10px';
+      div.innerHTML = `<div style="font-size:.72rem;font-family:monospace;color:var(--muted)">ORIGINAL:</div><div style="color:var(--muted);font-style:italic;font-size:.85rem;margin-bottom:4px">${e.orig}</div><div style="font-size:.72rem;font-family:monospace;color:var(--teal)">YOUR EDIT:</div><div style="color:var(--txt);font-size:.85rem">${e.edited}</div>`;
+      ed.appendChild(div);
+    });
+  }
+}
+
+function restart(){
+  currentEmotion=''; editsMade=[]; ratingGiven=0; editingLine=-1;
+  document.getElementById('phase-reflect').classList.remove('active');
+  document.getElementById('phase-input').classList.add('active');
+  document.getElementById('emotion-select').value='';
+  document.getElementById('detail-input').value='';
+  document.getElementById('edits-display').innerHTML='';
+  document.getElementById('no-edits').style.display='none';
+  document.querySelectorAll('.rating-btn').forEach(b=>b.className='rating-btn');
+}
+</script>
+</body>
+</html>

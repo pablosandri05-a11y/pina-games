@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How Does AI Learn? — AI Literacy Activity</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Nunito:wght@400;600;700&display=swap');
+
+  :root {
+    --teal:        #0D7A7A;
+    --teal-light:  #E0F4F4;
+    --teal-mid:    #4ABABA;
+    --purple:      #7C3AED;
+    --purple-light:#EDE9FE;
+    --green:       #059669;
+    --green-light: #D1FAE5;
+    --yellow:      #F59E0B;
+    --yellow-light:#FEF3C7;
+    --red:         #EF4444;
+    --red-light:   #FEE2E2;
+    --cream:       #F0FAFA;
+    --dark:        #0D3333;
+    --gray:        #6B7280;
+    --white:       #FFFFFF;
+    --radius:      20px;
+    --shadow:      0 8px 32px rgba(13,122,122,0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--cream);
+    color: var(--dark);
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--teal);
+    color: white;
+    text-align: center;
+    padding: 28px 20px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 160px; height: 160px;
+    background: rgba(255,255,255,0.07);
+    border-radius: 50%;
+  }
+  .header-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.2);
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  header h1 {
+    font-family: 'Baloo 2', cursive;
+    font-size: clamp(22px, 5vw, 34px);
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 8px;
+  }
+  header p {
+    font-size: clamp(14px, 3vw, 16px);
+    opacity: 0.9;
+    max-width: 460px;
+    margin: 0 auto;
+  }
+
+  /* ── PROGRESS ── */
+  .progress-wrap {
+    background: white;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .progress-label { font-size: 13px; font-weight: 700; color: var(--teal); white-space: nowrap; }
+  .progress-bar   { flex: 1; height: 10px; background: var(--teal-light); border-radius: 10px; overflow: hidden; }
+  .progress-fill  { height: 100%; background: linear-gradient(90deg, var(--teal), var(--teal-mid)); border-radius: 10px; transition: width 0.5s ease; width: 0%; }
+  .phase-badge    { background: var(--yellow-light); color: var(--dark); font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 20px; white-space: nowrap; }
+
+  /* ── SCREENS ── */
+  .screen { display: none; max-width: 680px; margin: 0 auto; padding: 24px 16px 60px; }
+  .screen.active { display: block; }
+
+  /* ── SHARED CARDS ── */
+  .card {
+    background: white;
+    border-radius: var(--radius);
+    padding: 28px 24px;
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+  }
+  .card h2 {
+    font-family: 'Baloo 2', cursive;
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--teal);
+    margin-bottom: 10px;
+  }
+  .card p { font-size: 15px; line-height: 1.6; color: var(--gray); }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-block;
+    padding: 13px 32px;
+    border-radius: 50px;
+    font-family: 'Baloo 2', cursive;
+    font-size: 17px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .btn:hover  { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
+  .btn:active { transform: translateY(0); }
+  .btn-teal    { background: var(--teal);   color: white; box-shadow: 0 4px 16px rgba(13,122,122,0.35); }
+  .btn-green   { background: var(--green);  color: white; box-shadow: 0 4px 16px rgba(5,150,105,0.35); }
+  .btn-outline { background: white; color: var(--teal); border: 2.5px solid var(--teal); }
+  .btn-center  { text-align: center; margin-top: 20px; }
+
+  /* ── INTRO ── */
+  .intro-emoji { font-size: 64px; display: block; text-align: center; margin-bottom: 16px; }
+  .rules {
+    background: var(--teal-light);
+    border-radius: 14px;
+    padding: 16px 18px;
+    margin: 16px 0 24px;
+  }
+  .rules p { font-size: 14px; color: var(--dark); margin-bottom: 8px; display: flex; gap: 8px; }
+  .rules p:last-child { margin-bottom: 0; }
+  .rules span { font-size: 18px; flex-shrink: 0; }
+
+  /* ── PHASE LABEL ── */
+  .phase-label {
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--teal); margin-bottom: 4px; text-align: center;
+  }
+  .phase-title {
+    font-family: 'Baloo 2', cursive;
+    font-size: clamp(18px, 4vw, 22px);
+    font-weight: 800;
+    text-align: center;
+    margin-bottom: 18px;
+    color: var(--dark);
+    line-height: 1.3;
+  }
+
+  /* ── TRAINING PHASE ── */
+  .training-counter {
+    text-align: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--gray);
+    margin-bottom: 12px;
+  }
+  .example-stage {
+    background: white;
+    border-radius: var(--radius);
+    padding: 24px;
+    box-shadow: var(--shadow);
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .example-animal {
+    font-size: 96px;
+    display: block;
+    margin-bottom: 8px;
+    animation: popIn 0.3s ease;
+  }
+  @keyframes popIn {
+    from { transform: scale(0.7); opacity: 0; }
+    to   { transform: scale(1);   opacity: 1; }
+  }
+  .animal-label {
+    font-family: 'Baloo 2', cursive;
+    font-size: 22px;
+    font-weight: 800;
+    padding: 8px 28px;
+    border-radius: 50px;
+    display: inline-block;
+    margin-bottom: 4px;
+  }
+  .label-cat { background: var(--purple-light); color: var(--purple); }
+  .label-dog { background: var(--yellow-light); color: #92400E; }
+  .example-note {
+    font-size: 13px;
+    color: var(--gray);
+    margin-top: 8px;
+    font-style: italic;
+  }
+  .dot-row {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+  }
+  .dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: #E5E7EB;
+    transition: background 0.3s;
+  }
+  .dot.seen-cat { background: var(--purple); }
+  .dot.seen-dog { background: var(--yellow); }
+
+  /* ── TEST PHASE ── */
+  .test-image-stage {
+    background: white;
+    border-radius: var(--radius);
+    padding: 24px;
+    box-shadow: var(--shadow);
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .test-animal { font-size: 80px; display: block; margin-bottom: 8px; }
+  .difficulty-chip {
+    display: inline-block;
+    font-size: 12px; font-weight: 700;
+    padding: 4px 14px;
+    border-radius: 20px;
+    margin-bottom: 6px;
+  }
+  .chip-easy  { background: var(--green-light);  color: var(--green); }
+  .chip-tricky{ background: var(--yellow-light); color: #92400E; }
+  .chip-hard  { background: var(--red-light);    color: var(--red); }
+
+  .vote-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+  .vote-btn {
+    background: white;
+    border: 2.5px solid #E5E7EB;
+    border-radius: 14px;
+    padding: 16px 12px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 16px; font-weight: 700;
+    color: var(--dark);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-align: center;
+  }
+  .vote-btn:hover:not(:disabled) { border-color: var(--teal); background: var(--teal-light); transform: translateY(-2px); }
+  .vote-btn.correct { background: var(--green-light); border-color: var(--green); color: var(--green); }
+  .vote-btn.wrong   { background: var(--red-light);   border-color: var(--red);   color: var(--red); }
+  .vote-btn:disabled { cursor: not-allowed; }
+
+  .feedback-panel {
+    border-radius: 14px;
+    padding: 14px 18px;
+    margin-bottom: 14px;
+    display: none;
+    animation: slideUp 0.3s ease;
+  }
+  @keyframes slideUp { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform:translateY(0); } }
+  .feedback-panel.correct-fb { background: var(--green-light); border: 2px solid var(--green); }
+  .feedback-panel.wrong-fb   { background: var(--red-light);   border: 2px solid var(--red); }
+  .feedback-panel h3 { font-family: 'Baloo 2', cursive; font-size: 16px; font-weight: 800; margin-bottom: 4px; }
+  .feedback-panel.correct-fb h3 { color: var(--green); }
+  .feedback-panel.wrong-fb   h3 { color: var(--red); }
+  .feedback-panel p { font-size: 13px; line-height: 1.5; color: var(--dark); }
+  .ai-note {
+    background: var(--teal-light);
+    border-left: 4px solid var(--teal);
+    border-radius: 0 10px 10px 0;
+    padding: 8px 12px;
+    margin-top: 8px;
+    font-size: 13px; font-weight: 600;
+    color: var(--dark);
+  }
+  .ai-note strong { color: var(--teal); }
+
+  /* ── BIAS SCREEN ── */
+  .bias-scenario {
+    background: white;
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+    margin-bottom: 14px;
+  }
+  .bias-scenario h3 {
+    font-family: 'Baloo 2', cursive;
+    font-size: 17px; font-weight: 800;
+    color: var(--dark); margin-bottom: 10px;
+  }
+  .bias-question { font-size: 15px; line-height: 1.6; color: var(--gray); margin-bottom: 14px; }
+  .bias-reveal {
+    background: var(--teal-light);
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 14px; line-height: 1.5;
+    display: none;
+    animation: slideUp 0.3s ease;
+  }
+  .bias-reveal strong { color: var(--teal); }
+  .reveal-btn {
+    background: var(--teal-light);
+    color: var(--teal);
+    border: none;
+    border-radius: 50px;
+    padding: 8px 20px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 14px; font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .reveal-btn:hover { background: var(--teal); color: white; }
+
+  /* ── FINAL ── */
+  .trophy { font-size: 64px; display: block; text-align: center; margin-bottom: 12px; }
+  .score-display {
+    background: var(--yellow-light);
+    border-radius: 14px;
+    padding: 16px;
+    margin: 14px 0;
+    font-family: 'Baloo 2', cursive;
+    font-size: 20px; font-weight: 800;
+    color: var(--dark);
+    text-align: center;
+  }
+  .key-message {
+    background: var(--teal);
+    color: white;
+    border-radius: var(--radius);
+    padding: 26px 22px;
+    margin-bottom: 16px;
+  }
+  .key-message h2 {
+    font-family: 'Baloo 2', cursive;
+    font-size: 20px; font-weight: 800;
+    margin-bottom: 10px;
+  }
+  .key-message p { font-size: 15px; line-height: 1.7; opacity: 0.95; margin-bottom: 14px; }
+  .takeaway-list { display: flex; flex-direction: column; gap: 8px; }
+  .takeaway {
+    background: rgba(255,255,255,0.15);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 14px; font-weight: 600;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .takeaway span:first-child { font-size: 20px; flex-shrink: 0; }
+
+  .footer-note { text-align: center; font-size: 13px; color: var(--gray); padding: 20px; }
+  .footer-note strong { color: var(--teal); }
+
+  @media (max-width: 480px) {
+    .vote-grid { grid-template-columns: 1fr; }
+    .example-animal { font-size: 72px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-badge">AI Literacy · Card 5</div>
+  <h1>🤖 How Does AI Learn?</h1>
+  <p>Train a tiny AI yourself — then test how well it learned</p>
+</header>
+
+<div class="progress-wrap">
+  <span class="progress-label" id="progressLabel">Intro</span>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  <span class="phase-badge" id="phaseBadge">Phase 1 of 3</span>
+</div>
+
+<!-- ══ SCREEN 0: INTRO ══ -->
+<div class="screen active" id="screen-intro">
+  <div class="card" style="text-align:center">
+    <span class="intro-emoji">🧠</span>
+    <h2>You are the AI!</h2>
+    <p>In this activity, you'll train yourself like an AI — by looking at lots of examples. Then you'll see how well you learned, and discover what happens when the examples are limited.</p>
+    <div class="rules">
+      <p><span>📚</span> <strong>Phase 1:</strong> Training — see many examples of cats and dogs</p>
+      <p><span>🎯</span> <strong>Phase 2:</strong> Testing — classify new images. Are you right?</p>
+      <p><span>🤔</span> <strong>Phase 3:</strong> Bias — what if the training was limited?</p>
+    </div>
+    <button class="btn btn-teal" onclick="startTraining()">Start training →</button>
+  </div>
+</div>
+
+<!-- ══ SCREEN 1: TRAINING ══ -->
+<div class="screen" id="screen-training">
+  <div class="phase-label" id="trainPhaseLabel">Phase 1 — Training</div>
+  <div class="phase-title" id="trainTitle">Study these examples carefully</div>
+
+  <div class="training-counter" id="trainCounter">Example 1 of 10</div>
+
+  <div class="example-stage">
+    <span class="example-animal" id="trainEmoji">🐱</span>
+    <div><span class="animal-label" id="trainLabel">CAT</span></div>
+    <p class="example-note" id="trainNote">Notice the pointy ears and whiskers</p>
+  </div>
+
+  <div class="dot-row" id="dotRow"></div>
+
+  <div class="btn-center">
+    <button class="btn btn-teal" id="trainNextBtn" onclick="nextTrainingExample()">Next example →</button>
+  </div>
+</div>
+
+<!-- ══ SCREEN 2: TESTING ══ -->
+<div class="screen" id="screen-testing">
+  <div class="phase-label">Phase 2 — Testing</div>
+  <div class="phase-title" id="testTitle">Is this a cat or a dog?</div>
+
+  <div class="test-image-stage">
+    <span class="test-animal" id="testEmoji">❓</span>
+    <div><span class="difficulty-chip" id="diffChip">Easy</span></div>
+    <p style="font-size:13px; color:var(--gray); margin-top:4px" id="testHint"></p>
+  </div>
+
+  <div class="vote-grid">
+    <button class="vote-btn" onclick="submitVote('cat')" id="btnCat">🐱 Cat</button>
+    <button class="vote-btn" onclick="submitVote('dog')" id="btnDog">🐶 Dog</button>
+  </div>
+
+  <div class="feedback-panel" id="testFeedback">
+    <h3 id="feedbackTitle"></h3>
+    <p id="feedbackText"></p>
+    <div class="ai-note" id="aiNote"></div>
+  </div>
+
+  <div class="btn-center">
+    <button class="btn btn-teal" id="testNextBtn" style="display:none" onclick="nextTestQuestion()">Next →</button>
+  </div>
+</div>
+
+<!-- ══ SCREEN 3: BIAS ══ -->
+<div class="screen" id="screen-bias">
+  <div class="phase-label">Phase 3 — The Training Problem</div>
+  <div class="phase-title">What if the examples were limited?</div>
+
+  <div class="card">
+    <p>You saw 5 cats and 5 dogs. But what if you had only seen <strong>white cats</strong>? Let's explore what happens to AI when its training data is limited.</p>
+  </div>
+
+  <div class="bias-scenario">
+    <h3>🐱 Scenario 1: Only white cats</h3>
+    <p class="bias-question">If AI only saw white cats during training, what do you think happens when it sees a black cat?</p>
+    <button class="reveal-btn" onclick="toggleReveal('reveal1', this)">Show what happens →</button>
+    <div class="bias-reveal" id="reveal1">
+      <strong>🤖 AI gets confused!</strong> It has learned to associate "cat" with white fur. When it sees a black cat, it might say "dog" or "unknown" — because the pattern doesn't match what it learned. This is called a <strong>training bias</strong>.
+    </div>
+  </div>
+
+  <div class="bias-scenario">
+    <h3>🐶 Scenario 2: Only big dogs</h3>
+    <p class="bias-question">If AI only trained on large dogs like German Shepherds, what happens when it sees a tiny Chihuahua?</p>
+    <button class="reveal-btn" onclick="toggleReveal('reveal2', this)">Show what happens →</button>
+    <div class="bias-reveal" id="reveal2">
+      <strong>🤖 AI might say it's a cat!</strong> The Chihuahua doesn't match the pattern of a "large dog". This is why diverse training data matters — AI needs to see <strong>many different examples</strong> of the same thing.
+    </div>
+  </div>
+
+  <div class="bias-scenario">
+    <h3>🌍 Scenario 3: The real world</h3>
+    <p class="bias-question">AI used in schools, hospitals, and job applications has sometimes treated people unfairly. Why do you think this happens?</p>
+    <button class="reveal-btn" onclick="toggleReveal('reveal3', this)">Show the answer →</button>
+    <div class="bias-reveal" id="reveal3">
+      <strong>🤖 Because of biased training data!</strong> If the data used to train AI mostly came from one type of person, the AI learns to favor that group. It's not "intentionally unfair" — it just repeats the patterns it was shown. That's why humans need to carefully choose what AI learns from.
+    </div>
+  </div>
+
+  <div class="btn-center">
+    <button class="btn btn-teal" onclick="showFinal()">See the big picture →</button>
+  </div>
+</div>
+
+<!-- ══ SCREEN 4: FINAL ══ -->
+<div class="screen" id="screen-final">
+  <div class="card" style="text-align:center">
+    <span class="trophy" id="trophyEmoji">🏆</span>
+    <h2>You completed all 3 phases!</h2>
+    <p style="margin-bottom:8px">Here's how you did in the testing phase:</p>
+    <div class="score-display" id="finalScore">⭐ You got 0 out of 5!</div>
+    <p id="scoreMsg" style="font-size:14px; color:var(--gray); line-height:1.5"></p>
+  </div>
+
+  <div class="key-message">
+    <h2>🧠 What have you learned?</h2>
+    <p>AI learns by looking at huge numbers of examples — just like you did in Phase 1. But the quality and variety of those examples matters a lot.</p>
+    <div class="takeaway-list">
+      <div class="takeaway"><span>📚</span> More examples = better learning</div>
+      <div class="takeaway"><span>🌈</span> Diverse examples = fairer AI</div>
+      <div class="takeaway"><span>⚠️</span> Limited examples = limited (and sometimes unfair) AI</div>
+      <div class="takeaway"><span>👥</span> Humans choose what AI trains on — that's a big responsibility</div>
+    </div>
+  </div>
+
+  <div class="card" style="text-align:center">
+    <h2 style="margin-bottom:10px">💬 Think about this...</h2>
+    <p style="margin-bottom:20px">If you were building an AI to recognize animals, what examples would you make sure to include? Why?</p>
+    <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap">
+      <button class="btn btn-outline" onclick="restartGame()">Play again 🔁</button>
+      <button class="btn btn-green" onclick="shareGame()">Share with class 📢</button>
+    </div>
+  </div>
+
+  <div class="footer-note">
+    <strong>AI Literacy Activity Cards</strong> · Card 5: How Does AI Learn?<br>
+    Part of an educational project for students aged 9–12
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════
+// DATA
+// ════════════════════════════════════════════
+
+const trainingExamples = [
+  { emoji: '🐱', type: 'cat', label: 'CAT', note: 'Pointy ears, whiskers, small nose' },
+  { emoji: '🐶', type: 'dog', label: 'DOG', note: 'Floppy ears, longer snout, round eyes' },
+  { emoji: '😸', type: 'cat', label: 'CAT', note: 'Cats can look happy or grumpy — still a cat!' },
+  { emoji: '🐕', type: 'dog', label: 'DOG', note: 'This one is walking — still a dog!' },
+  { emoji: '🐈', type: 'cat', label: 'CAT', note: 'Sitting still — classic cat pose' },
+  { emoji: '🦮', type: 'dog', label: 'DOG', note: 'Guide dog — larger and golden' },
+  { emoji: '😺', type: 'cat', label: 'CAT', note: 'Open mouth — but still a cat' },
+  { emoji: '🐩', type: 'dog', label: 'DOG', note: 'Poodle — very different fur from others!' },
+  { emoji: '🐈‍⬛', type: 'cat', label: 'CAT', note: 'Black cat — same animal, different colour' },
+  { emoji: '🐕‍🦺', type: 'dog', label: 'DOG', note: 'Service dog — notice the vest' },
+];
+
+const testQuestions = [
+  { emoji: '🐱', correct: 'cat', difficulty: 'easy',   chipClass: 'chip-easy',   hint: 'Classic example',
+    feedCorrect: 'Easy one! The pointy ears and whiskers are clear giveaways.',
+    feedWrong:   'Actually a cat! Look for pointy ears and whiskers next time.',
+    aiNote: '<strong>🤖 AI confidence:</strong> Very high — this matches training examples perfectly.' },
+  { emoji: '🐶', correct: 'dog', difficulty: 'easy',   chipClass: 'chip-easy',   hint: 'Classic example',
+    feedCorrect: 'Well done! The floppy ears and round snout say "dog" clearly.',
+    feedWrong:   'It\'s a dog! Floppy ears and a longer snout are key clues.',
+    aiNote: '<strong>🤖 AI confidence:</strong> Very high — strong pattern match.' },
+  { emoji: '🐈‍⬛', correct: 'cat', difficulty: 'tricky', chipClass: 'chip-tricky', hint: 'Same animal, different colour',
+    feedCorrect: 'You got it! Black cats are still cats — colour doesn\'t change the species.',
+    feedWrong:   'It\'s a black cat! If AI only trained on white cats, it would get this wrong.',
+    aiNote: '<strong>🤖 AI might struggle:</strong> If it only saw white cats in training, it may not recognise this one.' },
+  { emoji: '🦊', correct: 'cat', difficulty: 'hard',   chipClass: 'chip-hard',   hint: 'Tricky — looks like something else!',
+    feedCorrect: 'Hmm — this one is actually debatable! A fox isn\'t a cat or dog.',
+    feedWrong:   'Neither is quite right — it\'s a fox! AI would also struggle here.',
+    aiNote: '<strong>🤖 AI would be confused:</strong> AI trained only on cats and dogs has no category for a fox — it would guess wrongly.' },
+  { emoji: '🐕', correct: 'dog', difficulty: 'easy',   chipClass: 'chip-easy',   hint: 'Moving — but still recognisable',
+    feedCorrect: 'Correct! Even in motion, the dog\'s features are clear.',
+    feedWrong:   'It\'s a dog! Movement doesn\'t change what it is.',
+    aiNote: '<strong>🤖 AI confidence:</strong> High — movement is usually handled well with enough training images.' },
+];
+
+// ════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════
+let trainIndex = 0;
+let testIndex  = 0;
+let testScore  = 0;
+let answered   = false;
+
+// ════════════════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function setProgress(pct, label, badge) {
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressLabel').textContent = label;
+  document.getElementById('phaseBadge').textContent = badge;
+}
+
+// ════════════════════════════════════════════
+// PHASE 1: TRAINING
+// ════════════════════════════════════════════
+function startTraining() {
+  trainIndex = 0;
+  showScreen('screen-training');
+  buildDots();
+  renderTraining();
+}
+
+function buildDots() {
+  const row = document.getElementById('dotRow');
+  row.innerHTML = '';
+  trainingExamples.forEach(() => {
+    const d = document.createElement('div');
+    d.className = 'dot';
+    row.appendChild(d);
+  });
+}
+
+function renderTraining() {
+  const ex = trainingExamples[trainIndex];
+  document.getElementById('trainCounter').textContent = `Example ${trainIndex + 1} of ${trainingExamples.length}`;
+  document.getElementById('trainTitle').textContent   = trainIndex < 5 ? 'Study these examples carefully' : 'Keep going — almost done!';
+  document.getElementById('trainEmoji').textContent   = ex.emoji;
+  document.getElementById('trainLabel').textContent   = ex.label;
+  document.getElementById('trainLabel').className     = 'animal-label ' + (ex.type === 'cat' ? 'label-cat' : 'label-dog');
+  document.getElementById('trainNote').textContent    = ex.note;
+  document.getElementById('trainNextBtn').textContent = trainIndex === trainingExamples.length - 1 ? 'Start testing! →' : 'Next example →';
+
+  // animate
+  const el = document.getElementById('trainEmoji');
+  el.style.animation = 'none';
+  el.offsetHeight;
+  el.style.animation = 'popIn 0.3s ease';
+
+  // update dots
+  const dots = document.querySelectorAll('.dot');
+  for (let i = 0; i <= trainIndex; i++) {
+    dots[i].className = 'dot seen-' + trainingExamples[i].type;
+  }
+
+  setProgress(Math.round(((trainIndex + 1) / trainingExamples.length) * 33), `Training ${trainIndex + 1}/${trainingExamples.length}`, 'Phase 1 of 3');
+}
+
+function nextTrainingExample() {
+  if (trainIndex < trainingExamples.length - 1) {
+    trainIndex++;
+    renderTraining();
+  } else {
+    startTesting();
+  }
+}
+
+// ════════════════════════════════════════════
+// PHASE 2: TESTING
+// ════════════════════════════════════════════
+function startTesting() {
+  testIndex = 0;
+  testScore = 0;
+  showScreen('screen-testing');
+  renderTest();
+}
+
+function renderTest() {
+  answered = false;
+  const q = testQuestions[testIndex];
+  document.getElementById('testTitle').textContent   = 'Is this a cat or a dog?';
+  document.getElementById('testEmoji').textContent   = q.emoji;
+  document.getElementById('diffChip').textContent    = q.difficulty.charAt(0).toUpperCase() + q.difficulty.slice(1);
+  document.getElementById('diffChip').className      = 'difficulty-chip ' + q.chipClass;
+  document.getElementById('testHint').textContent    = q.hint;
+  document.getElementById('testFeedback').style.display = 'none';
+  document.getElementById('testFeedback').className  = 'feedback-panel';
+  document.getElementById('testNextBtn').style.display = 'none';
+  document.getElementById('btnCat').className = 'vote-btn';
+  document.getElementById('btnDog').className = 'vote-btn';
+  document.getElementById('btnCat').disabled  = false;
+  document.getElementById('btnDog').disabled  = false;
+
+  setProgress(33 + Math.round((testIndex / testQuestions.length) * 33), `Testing ${testIndex + 1}/${testQuestions.length}`, 'Phase 2 of 3');
+}
+
+function submitVote(choice) {
+  if (answered) return;
+  answered = true;
+  const q = testQuestions[testIndex];
+  const isCorrect = choice === q.correct;
+  if (isCorrect) testScore++;
+
+  document.getElementById('btnCat').disabled = true;
+  document.getElementById('btnDog').disabled = true;
+  if (q.correct === 'cat') document.getElementById('btnCat').classList.add('correct');
+  else                      document.getElementById('btnDog').classList.add('correct');
+  if (!isCorrect) document.getElementById('btn' + choice.charAt(0).toUpperCase() + choice.slice(1)).classList.add('wrong');
+
+  const fp = document.getElementById('testFeedback');
+  fp.style.display = 'block';
+  fp.className = 'feedback-panel ' + (isCorrect ? 'correct-fb' : 'wrong-fb');
+  document.getElementById('feedbackTitle').textContent = isCorrect ? '🎉 Correct!' : '❌ Not quite!';
+  document.getElementById('feedbackText').textContent  = isCorrect ? q.feedCorrect : q.feedWrong;
+  document.getElementById('aiNote').innerHTML = q.aiNote;
+  document.getElementById('testNextBtn').style.display = 'inline-block';
+  document.getElementById('testNextBtn').textContent   = testIndex === testQuestions.length - 1 ? 'Go to Phase 3 →' : 'Next →';
+}
+
+function nextTestQuestion() {
+  testIndex++;
+  if (testIndex < testQuestions.length) {
+    renderTest();
+  } else {
+    showScreen('screen-bias');
+    setProgress(66, 'Phase 3 — Bias', 'Phase 3 of 3');
+  }
+}
+
+// ════════════════════════════════════════════
+// PHASE 3: BIAS
+// ════════════════════════════════════════════
+function toggleReveal(id, btn) {
+  const el = document.getElementById(id);
+  if (el.style.display === 'block') {
+    el.style.display = 'none';
+    btn.textContent  = 'Show what happens →';
+  } else {
+    el.style.display = 'block';
+    btn.textContent  = 'Hide ↑';
+  }
+}
+
+// ════════════════════════════════════════════
+// FINAL
+// ════════════════════════════════════════════
+function showFinal() {
+  showScreen('screen-final');
+  setProgress(100, 'Done!', '✅ Complete');
+
+  document.getElementById('finalScore').textContent = `⭐ You got ${testScore} out of ${testQuestions.length}!`;
+
+  let msg, emoji;
+  if (testScore === 5) {
+    msg   = 'Perfect! You learned well from the examples — just like a well-trained AI.';
+    emoji = '🏆';
+  } else if (testScore >= 3) {
+    msg   = 'Good job! Some questions were genuinely tricky — AI would also struggle with those.';
+    emoji = '🌟';
+  } else {
+    msg   = 'Tricky, right? The fox question fools almost everyone — and AI too!';
+    emoji = '💪';
+  }
+  document.getElementById('trophyEmoji').textContent = emoji;
+  document.getElementById('scoreMsg').textContent    = msg;
+}
+
+function restartGame() {
+  trainIndex = testIndex = testScore = 0;
+  document.querySelectorAll('.bias-reveal').forEach(el => el.style.display = 'none');
+  document.querySelectorAll('.reveal-btn').forEach(btn => btn.textContent = 'Show what happens →');
+  showScreen('screen-intro');
+  setProgress(0, 'Intro', 'Phase 1 of 3');
+}
+
+function shareGame() {
+  if (navigator.share) {
+    navigator.share({ title: 'How Does AI Learn? — AI Literacy Game', url: window.location.href });
+  } else {
+    const inp = document.createElement('input');
+    document.body.appendChild(inp);
+    inp.value = window.location.href;
+    inp.select();
+    document.execCommand('copy');
+    document.body.removeChild(inp);
+    alert('Link copied! Share it with your class.');
+  }
+}
+</script>
+</body>
+</html>

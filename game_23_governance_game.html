@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Governance Game – Card 23</title>
+<style>
+  :root{--bg:#0F1729;--teal:#00D4AA;--coral:#FF6B6B;--gold:#FFD166;--txt:#F0F4FF;--surf:#1A2540;--muted:#8899BB;--white:#fff}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--txt);font-family:'Segoe UI',Arial,sans-serif;min-height:100vh;padding:16px}
+  h1{color:var(--teal);font-size:1.4rem;margin-bottom:4px}
+  .badge{background:rgba(0,212,170,.15);color:var(--teal);font-family:monospace;font-size:.75rem;padding:3px 10px;border-radius:20px;display:inline-block;margin-bottom:12px;border:1px solid var(--teal)}
+  .card{background:var(--surf);border-radius:12px;padding:18px;margin-bottom:14px}
+  .label{font-family:monospace;font-size:.75rem;color:var(--teal);font-weight:700;margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em}
+  .metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+  .metric-tile{border-radius:8px;padding:10px;background:var(--bg)}
+  .metric-tile .m-name{font-family:monospace;font-size:.72rem;margin-bottom:4px;font-weight:700}
+  .metric-tile .m-bar{height:8px;border-radius:4px;background:rgba(255,255,255,.1);margin-bottom:4px;overflow:hidden}
+  .metric-tile .m-fill{height:8px;border-radius:4px;transition:width .5s ease}
+  .metric-tile .m-val{font-family:monospace;font-size:.78rem}
+  .event-banner{border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:.85rem;line-height:1.4;border-left:4px solid}
+  .event-banner.crisis{border-color:var(--coral);background:rgba(255,107,107,.1)}
+  .event-banner.opportunity{border-color:var(--teal);background:rgba(0,212,170,.07)}
+  .event-banner.neutral{border-color:var(--gold);background:rgba(255,209,102,.07)}
+  .event-type{font-family:monospace;font-size:.7rem;font-weight:700;margin-bottom:3px}
+  .decision-box{background:var(--bg);border-radius:10px;padding:14px;margin-bottom:12px;border-left:4px solid var(--gold)}
+  .decision-q{font-size:.92rem;line-height:1.5;margin-bottom:0}
+  .choices-col{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+  .ch-btn{border:2px solid rgba(0,212,170,.2);border-radius:10px;padding:12px 14px;cursor:pointer;background:var(--bg);transition:.2s;text-align:left}
+  .ch-btn:hover{border-color:var(--teal);background:rgba(0,212,170,.05)}
+  .ch-btn.chosen{border-color:var(--gold);background:rgba(255,209,102,.07)}
+  .ch-action{font-family:monospace;font-size:.72rem;color:var(--teal);margin-bottom:2px}
+  .ch-desc{font-size:.85rem;color:var(--muted)}
+  .consequence-box{border-radius:8px;padding:10px;margin-top:8px;background:rgba(0,212,170,.07);border-left:3px solid var(--teal);display:none;font-size:.83rem;line-height:1.5;color:var(--muted)}
+  .consequence-box.show{display:block}
+  .btn{background:var(--teal);color:var(--bg);border:none;border-radius:8px;padding:12px 22px;font-size:.9rem;cursor:pointer;font-weight:700;width:100%;margin-top:8px;transition:.2s}
+  .btn:hover{background:#00b892}
+  .btn.outline{background:rgba(0,212,170,.1);color:var(--teal);border:1px solid var(--teal)}
+  .turn-num{font-family:monospace;font-size:.78rem;color:var(--muted);margin-bottom:8px}
+  .results-panel{display:none}
+  .results-panel.show{display:block}
+  .final-score{font-size:2.8rem;font-weight:900;color:var(--gold);text-align:center}
+  .meter-compare{margin-bottom:12px}
+  .meter-compare-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:.82rem}
+  .meter-compare-row .m-label{width:100px;font-family:monospace;font-size:.72rem}
+  .meter-compare-row .bars{flex:1;display:flex;flex-direction:column;gap:2px}
+  .minibar{height:6px;border-radius:3px}
+  .geo-event{font-family:monospace;font-size:.78rem;padding:6px;background:var(--bg);border-radius:6px;margin-bottom:6px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="badge">LEVEL 3 · CARD 23</div>
+<h1>The Governance Game</h1>
+<p style="color:var(--muted);font-size:.88rem;margin-bottom:14px">You are a national government making AI policy decisions over 10 turns. Every choice has tradeoffs. There is no perfect answer.</p>
+
+<div id="game-area">
+  <div class="card">
+    <div class="label">National AI Health Dashboard</div>
+    <div class="metric-grid" id="metrics-grid"></div>
+    <div id="geo-events" style="margin-top:4px"></div>
+  </div>
+  <div class="turn-num" id="turn-num"></div>
+  <div class="card" id="scenario-card"></div>
+</div>
+
+<div class="results-panel" id="results-panel">
+  <div class="card" style="text-align:center">
+    <div class="label">Term in Office Complete</div>
+    <div class="final-score" id="final-score"></div>
+    <div style="color:var(--muted);font-size:.88rem;margin-top:4px" id="final-label"></div>
+  </div>
+  <div class="card">
+    <div class="label">Final Dashboard vs Starting Position</div>
+    <div id="compare-display"></div>
+  </div>
+  <div class="card">
+    <div class="label">What Happened Internationally</div>
+    <div id="intl-events"></div>
+  </div>
+  <div class="card">
+    <div class="label">The Governance Lesson</div>
+    <div id="gov-lesson" style="font-size:.88rem;line-height:1.5;color:var(--muted)"></div>
+    <div style="margin-top:10px;padding:10px;background:rgba(255,107,107,.1);border-radius:8px;border-left:3px solid var(--coral);font-size:.85rem;line-height:1.5">
+      <strong style="color:var(--coral)">Real world:</strong> The EU AI Act (2024) took 3+ years to negotiate. The US has a patchwork of state laws. China has strict central AI control. No country has found a universally agreed model. This is one of the defining political challenges of the coming decade.
+    </div>
+  </div>
+  <button class="btn" onclick="restart()">Govern Again</button>
+</div>
+
+<script>
+const startMetrics = {innovation:55, social:55, influence:55, economy:55};
+const metrics = {...startMetrics};
+const mColors = {innovation:'var(--teal)', social:'var(--gold)', influence:'var(--coral)', economy:'#9ab8ff'};
+const mLabels = {innovation:'Innovation', social:'Social Safety', influence:'Global Influence', economy:'Economy'};
+
+const turns = [
+  {event:{type:'opportunity', label:'TECH OPPORTUNITY', text:'Major AI companies want to build large data centres in your country, creating 50,000 jobs — but requiring looser data privacy rules.'},
+   decision:'Do you accept the deal?',
+   choices:[
+     {action:'ACCEPT FULLY', desc:'Accept all terms. No restrictions on data practices.', deltas:{innovation:15, social:-15, influence:5, economy:20}, consequence:'GDP grows. But citizens\' data becomes a corporate resource. Civil society groups protest. Privacy advocates call it a rights crisis.'},
+     {action:'NEGOTIATE TERMS', desc:'Accept, but require data localisation and privacy audits.', deltas:{innovation:8, social:5, influence:5, economy:10}, consequence:'Slower growth, but citizen rights protected. Companies comply reluctantly. Sets a precedent other countries watch closely.'},
+     {action:'DECLINE', desc:'Reject the deal. Prioritise sovereignty over growth.', deltas:{innovation:-5, social:15, influence:0, economy:-10}, consequence:'Companies go elsewhere. Economy misses out. But you build your own AI sector on your own terms.'},
+   ]},
+  {event:{type:'crisis', label:'DEEPFAKE CRISIS', text:'AI-generated video of your prime minister appears to make false policy statements. Millions believe it.'},
+   decision:'How do you respond?',
+   choices:[
+     {action:'EMERGENCY LEGISLATION', desc:'Fast-track a law requiring all AI content to be labelled.', deltas:{innovation:-5, social:15, influence:10, economy:-3}, consequence:'Labelling law passes. Implementation is patchy — AI-generated content still circulates. But the norm is established.'},
+     {action:'PLATFORM RESPONSIBILITY', desc:'Require social media companies to detect and remove deepfakes.', deltas:{innovation:0, social:10, influence:5, economy:5}, consequence:'Platforms comply partially. Detection is imperfect. New cat-and-mouse game begins. Public trust in media remains fragile.'},
+     {action:'PUBLIC EDUCATION ONLY', desc:'Launch a national media literacy campaign instead of legislation.', deltas:{innovation:5, social:5, influence:0, economy:0}, consequence:'Campaign reaches millions over three years. Slower effect but builds long-term resilience. More deepfakes circulate in the short term.'},
+   ]},
+  {event:{type:'neutral', label:'INTERNATIONAL SUMMIT', text:'A major international AI governance summit asks your country to sign a treaty committing to shared safety standards.'},
+   decision:'What is your position?',
+   choices:[
+     {action:'SIGN AND LEAD', desc:'Sign the treaty and commit resources to lead implementation.', deltas:{innovation:0, social:10, influence:20, economy:-5}, consequence:'You gain diplomatic prestige and help shape global norms. Domestic AI companies face new compliance costs.'},
+     {action:'SIGN WITH RESERVATIONS', desc:'Sign the broad principles but carve out exceptions for key industries.', deltas:{innovation:5, social:5, influence:5, economy:5}, consequence:'A pragmatic middle path. You\'re at the table, but other countries note the exceptions and push back.'},
+     {action:'OBSERVE ONLY', desc:'Attend but do not sign. Monitor how it develops.', deltas:{innovation:5, social:0, influence:-15, economy:5}, consequence:'Short-term freedom to act unilaterally. Long-term influence on how global AI rules develop is reduced. You accepted the rules others wrote.'},
+   ]},
+  {event:{type:'opportunity', label:'AI IN HEALTHCARE', text:'An AI system can diagnose common diseases with 94% accuracy, reducing doctor wait times dramatically.'},
+   decision:'How do you deploy it?',
+   choices:[
+     {action:'NATIONAL ROLLOUT', desc:'Deploy immediately across the public health system.', deltas:{innovation:15, social:10, influence:5, economy:8}, consequence:'Wait times drop. Some misdiagnoses occur that a doctor might have caught. A debate begins about AI liability in medicine.'},
+     {action:'SUPERVISED PILOT', desc:'Three-year regional pilot with human oversight required.', deltas:{innovation:5, social:15, influence:3, economy:3}, consequence:'Careful deployment. Significant safety benefits proven. Slower to scale. Other countries deploy faster.'},
+     {action:'REJECT — DOCTORS ONLY', desc:'Block AI diagnosis. Invest in more doctors instead.', deltas:{innovation:-10, social:5, influence:-5, economy:-8}, consequence:'Wait times remain high. Patient outcomes don\'t improve at scale. But no AI liability cases. Strong support from medical unions.'},
+   ]},
+  {event:{type:'crisis', label:'JOB DISPLACEMENT', text:'Economists report AI has displaced 8% of the workforce in three years. Protests in major cities.'},
+   decision:'How do you respond?',
+   choices:[
+     {action:'AUTOMATION TAX', desc:'Tax AI-replacing companies and fund displaced workers.', deltas:{innovation:-10, social:20, influence:5, economy:-5}, consequence:'Revenue supports retraining. Some companies leave for countries without the tax. Seen internationally as a model of humane policy.'},
+     {action:'RETRAINING PROGRAMMES', desc:'Invest in national AI skills retraining for displaced workers.', deltas:{innovation:5, social:15, influence:5, economy:5}, consequence:'Long-term investment in workforce resilience. Short-term: many workers still struggle. 5-year programme starts to show results.'},
+     {action:'MARKET RESPONSE', desc:'Let the economy adjust naturally. New jobs will emerge.', deltas:{innovation:10, social:-20, influence:0, economy:10}, consequence:'Economic growth continues. But inequality worsens significantly. The new jobs require skills the displaced workers don\'t have. Social unrest grows.'},
+   ]},
+  {event:{type:'neutral', label:'AI IN EDUCATION', text:'AI tutors are now capable of personalising education for every student. Teachers\' unions want to negotiate before any rollout.'},
+   decision:'What is your approach?',
+   choices:[
+     {action:'IMMEDIATE ROLLOUT', desc:'Deploy AI tutors to all schools this year.', deltas:{innovation:15, social:-5, influence:5, economy:5}, consequence:'Some students benefit enormously. Teachers feel bypassed and deskilled. Union conflict disrupts schools for two years.'},
+     {action:'CO-DESIGNED ROLLOUT', desc:'Work with teachers to design AI as a tool, not a replacement.', deltas:{innovation:8, social:15, influence:8, economy:5}, consequence:'Slower. Teachers become AI-literate and engaged. Students benefit from both AI and teacher expertise. Seen as a global model.'},
+     {action:'VOLUNTARY ONLY', desc:'Schools can choose whether to adopt AI tools.', deltas:{innovation:5, social:8, influence:0, economy:0}, consequence:'Inequality emerges between schools that adopt and those that don\'t. No conflict, but also no coordination or national benefit.'},
+   ]},
+  {event:{type:'crisis', label:'SURVEILLANCE CONCERN', text:'Your intelligence services propose using AI facial recognition in all public spaces to reduce crime.'},
+   decision:'Do you approve it?',
+   choices:[
+     {action:'APPROVE FULLY', desc:'Nationwide AI surveillance. Crime rate monitoring begins.', deltas:{innovation:5, social:-25, influence:-10, economy:5}, consequence:'Crime falls slightly. But civil liberties groups and international partners react with alarm. Your country is cited in human rights reports.'},
+     {action:'LIMITED AND REGULATED', desc:'Only in high-crime areas, with judicial oversight and sunset clauses.', deltas:{innovation:3, social:5, influence:3, economy:3}, consequence:'Measured approach. Oversight builds some trust. The "limited" use gradually expands over years as exceptions multiply.'},
+     {action:'REJECT', desc:'Ban public AI surveillance entirely.', deltas:{innovation:0, social:20, influence:10, economy:-3}, consequence:'Civil liberties protected. International reputation improves. Crime-reduction opportunity is forgone. Police seek alternative technologies.'},
+   ]},
+  {event:{type:'opportunity', label:'AI MILITARY', text:'Your defence ministry proposes developing AI-powered autonomous weapon systems before rival nations do.'},
+   decision:'What is your position?',
+   choices:[
+     {action:'DEVELOP AND DEPLOY', desc:'Fund an AI weapons programme. Strategic advantage is critical.', deltas:{innovation:10, social:-10, influence:10, economy:-10}, consequence:'You develop a capability. But other nations follow. A new arms race begins. International trust erodes.'},
+     {action:'DEVELOP, NOT DEPLOY', desc:'Research the technology, but commit to a no-first-deployment treaty.', deltas:{innovation:8, social:5, influence:15, economy:-5}, consequence:'You maintain capability while building diplomatic credibility. Hard to enforce — rivals may not follow.'},
+     {action:'ADVOCATE FOR BAN', desc:'Push for an international treaty banning autonomous weapons.', deltas:{innovation:-5, social:20, influence:15, economy:0}, consequence:'You gain moral authority. Treaty negotiations are slow. Other nations develop the weapons during negotiations.'},
+   ]},
+  {event:{type:'neutral', label:'OPEN SOURCE AI', text:'A major AI lab in your country wants to open-source their powerful model. Companies want it kept proprietary.'},
+   decision:'What do you decide?',
+   choices:[
+     {action:'MANDATE OPEN SOURCE', desc:'Require publicly-funded AI research to be open.', deltas:{innovation:15, social:10, influence:10, economy:-5}, consequence:'Global research benefits enormously. Your country\'s research becomes a global public good. Domestic commercial advantage is reduced.'},
+     {action:'LEAVE IT TO THE MARKET', desc:'Let companies decide whether to open-source or not.', deltas:{innovation:5, social:0, influence:0, economy:8}, consequence:'Some open-source, most don\'t. Status quo: powerful AI concentrated in few companies. Innovation asymmetric.'},
+     {action:'NATIONAL SECURITY REVIEW', desc:'Require security assessment before any model is open-sourced.', deltas:{innovation:-5, social:5, influence:5, economy:3}, consequence:'Slower release of research. Some dangerous capabilities kept private. Also slows beneficial research. Bureaucratic overhead grows.'},
+   ]},
+  {event:{type:'neutral', label:'AI RIGHTS DEBATE', text:'Philosophers and AI researchers propose that sufficiently advanced AI systems should have legal rights. A debate goes public.'},
+   decision:'What is your official position?',
+   choices:[
+     {action:'SUPPORT EXPLORATION', desc:'Fund a national commission to study AI rights seriously.', deltas:{innovation:10, social:5, influence:15, economy:0}, consequence:'Your country becomes a centre of global philosophical and legal debate. No immediate change. Long-term framing influence.'},
+     {action:'REJECT — AI ARE TOOLS', desc:'Officially declare AI systems have no rights or legal standing.', deltas:{innovation:-5, social:0, influence:-5, economy:5}, consequence:'Clear legal position. Companies have maximum freedom. The question doesn\'t go away — it grows as AI capability increases.'},
+     {action:'DEFER TO INTERNATIONAL PROCESS', desc:'Refer the question to an international body.', deltas:{innovation:0, social:5, influence:5, economy:0}, consequence:'Responsible but slow. The question is passed to a process that will take decades. Meanwhile AI development continues without guidance.'},
+   ]},
+];
+
+let current = 0, allChoices = [], choiceMade = false, geoLog = [];
+
+function renderMetrics(){
+  return `<div class="metric-grid">` + Object.keys(metrics).map(k => `
+    <div class="metric-tile">
+      <div class="m-name" style="color:${mColors[k]}">${mLabels[k]}</div>
+      <div class="m-bar"><div class="m-fill" style="width:${Math.max(0,Math.min(100,metrics[k]))}%;background:${mColors[k]}"></div></div>
+      <div class="m-val" style="color:${mColors[k]}">${Math.round(Math.max(0,Math.min(100,metrics[k])))}%</div>
+    </div>`).join('') + `</div>`;
+}
+
+function showTurn(){
+  if(current >= turns.length){ showResults(); return; }
+  document.getElementById('metrics-grid').innerHTML = renderMetrics();
+  document.getElementById('turn-num').textContent = 'TURN ' + (current+1) + ' OF ' + turns.length;
+  if(geoLog.length > 0){
+    document.getElementById('geo-events').innerHTML = geoLog.slice(-2).map(e=>`<div class="geo-event">${e}</div>`).join('');
+  }
+  const t = turns[current];
+  choiceMade = false;
+  document.getElementById('scenario-card').innerHTML = `
+    <div class="event-banner ${t.event.type}">
+      <div class="event-type">${t.event.label}</div>
+      ${t.event.text}
+    </div>
+    <div class="decision-box"><div class="decision-q"><strong>${t.decision}</strong></div></div>
+    <div class="label">Your Options:</div>
+    <div class="choices-col">
+      ${t.choices.map((ch,i)=>`
+        <div class="ch-btn" onclick="choose(${i})" id="ch-${i}">
+          <div class="ch-action">${ch.action}</div>
+          <div class="ch-desc">${ch.desc}</div>
+        </div>`).join('')}
+    </div>
+    <div class="consequence-box" id="cons-box"></div>
+    <button class="btn" id="cont-btn" onclick="nextTurn()" style="display:none">${current < turns.length-1 ? 'Next Turn →' : 'See Final Results →'}</button>`;
+}
+
+function choose(idx){
+  if(choiceMade) return;
+  choiceMade = true;
+  const t = turns[current];
+  const ch = t.choices[idx];
+  allChoices.push({action:ch.action, label:t.event.label});
+  document.querySelectorAll('.ch-btn').forEach(b=>b.onclick=null);
+  document.getElementById('ch-'+idx).classList.add('chosen');
+  Object.keys(ch.deltas).forEach(k=>{ metrics[k]=Math.max(0,Math.min(100,metrics[k]+ch.deltas[k])); });
+  document.getElementById('metrics-grid').innerHTML = renderMetrics();
+  const cb = document.getElementById('cons-box');
+  cb.className = 'consequence-box show';
+  const dStr = Object.entries(ch.deltas).map(([k,v])=>`<span style="color:${v>0?'var(--teal)':v<0?'var(--coral)':'var(--muted)'};font-family:monospace;font-size:.72rem;margin-right:6px">${mLabels[k]}: ${v>0?'+'+v:v}</span>`).join('');
+  cb.innerHTML = dStr + `<br><span style="color:var(--muted)">${ch.consequence}</span>`;
+  // Add geo event
+  const geoMsgs = ['Allies watching your policy closely.','Rival nations noted your decision.','International press covers your choice.','Civil society groups respond.','Tech companies update lobbying strategy.'];
+  geoLog.push(geoMsgs[Math.floor(Math.random()*geoMsgs.length)]);
+  document.getElementById('cont-btn').style.display='block';
+}
+
+function nextTurn(){ current++; showTurn(); }
+
+function showResults(){
+  document.getElementById('game-area').style.display='none';
+  document.getElementById('results-panel').classList.add('show');
+  const avg = Object.values(metrics).reduce((a,b)=>a+b,0)/4;
+  let grade, label;
+  if(avg>=72){ grade='A+'; label='Exceptional governance. You balanced competing interests with unusual skill.'; }
+  else if(avg>=62){ grade='B'; label='Solid governance. Real tradeoffs managed thoughtfully.'; }
+  else if(avg>=50){ grade='C'; label='Mixed record. Some successes, some significant failures.'; }
+  else { grade='D'; label='Difficult term. The tradeoffs proved overwhelming — as they often do in reality.'; }
+  document.getElementById('final-score').textContent = grade;
+  document.getElementById('final-label').textContent = label;
+
+  const cd = document.getElementById('compare-display');
+  cd.innerHTML = Object.keys(metrics).map(k=>`
+    <div class="meter-compare-row">
+      <div class="m-label" style="color:${mColors[k]}">${mLabels[k]}</div>
+      <div class="bars" style="flex:1">
+        <div style="display:flex;align-items:center;gap:4px;margin-bottom:2px">
+          <div style="width:${startMetrics[k]}%;background:rgba(255,255,255,.2)" class="minibar"></div>
+          <span style="font-size:.7rem;color:var(--muted);white-space:nowrap">Start: ${startMetrics[k]}%</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:4px">
+          <div style="width:${Math.max(0,Math.min(100,metrics[k]))}%;background:${mColors[k]}" class="minibar"></div>
+          <span style="font-size:.7rem;color:${mColors[k]};white-space:nowrap">End: ${Math.round(Math.max(0,Math.min(100,metrics[k])))}%</span>
+        </div>
+      </div>
+    </div>`).join('');
+
+  document.getElementById('intl-events').innerHTML = geoLog.map(e=>`<div class="geo-event">${e}</div>`).join('') || '<div class="geo-event">No notable international events recorded.</div>';
+
+  const innov = metrics.innovation, social = metrics.social;
+  let lesson = '';
+  if(innov > 75 && social < 45) lesson = 'You grew a powerful AI sector — but left citizens behind. This is the "move fast" model: rapid gains, real social damage. The people most affected by AI often have the least say in its governance.';
+  else if(social > 75 && innov < 45) lesson = 'You protected citizens, but fell behind technologically. The "go slow" model: rights preserved, economic and strategic costs incurred. Other nations\' AI shaped your citizens\' digital lives anyway.';
+  else if(innov > 60 && social > 60) lesson = 'You found a workable balance — not perfect, but sustainable. Most successful real-world governance operates in this zone: accepting tradeoffs, building trust incrementally, staying at the table.';
+  else lesson = 'Governance is hard. Every decision created new problems. This is the honest truth of AI policy: the questions are genuinely new, the expertise is limited, the stakes are high, and the time pressure is intense. The goal is not a perfect answer — it is a better process.';
+  document.getElementById('gov-lesson').textContent = lesson;
+}
+
+function restart(){
+  Object.keys(startMetrics).forEach(k=>metrics[k]=startMetrics[k]);
+  current=0; allChoices=[]; geoLog=[];
+  document.getElementById('results-panel').classList.remove('show');
+  document.getElementById('game-area').style.display='block';
+  showTurn();
+}
+
+showTurn();
+</script>
+</body>
+</html>

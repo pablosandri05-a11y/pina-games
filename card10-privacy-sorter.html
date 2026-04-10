@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privacy Sorter - Can AI Keep a Secret?</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --navy:#1B4D5C;--teal:#3D9BA0;--light-teal:#5CC5C0;
+    --ice:#E8F4F8;--cream:#F5F9FA;
+    --safe-green:#43A047;--private-red:#E53935;
+    --safe-bg:#E8F5E9;--private-bg:#FFEBEE;
+    --shadow:0 4px 20px rgba(27,77,92,.12);
+  }
+  body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--navy);min-height:100vh;-webkit-user-select:none;user-select:none}
+  .header{background:linear-gradient(135deg,var(--navy),var(--teal));color:#fff;padding:28px 20px 24px;text-align:center;position:relative;overflow:hidden}
+  .header::before{content:'';position:absolute;top:-40px;right:-40px;width:120px;height:120px;background:rgba(255,255,255,.08);border-radius:50%}
+  .card-badge{display:inline-block;background:rgba(255,255,255,.2);padding:3px 12px;border-radius:20px;font-size:.75rem;font-weight:700;letter-spacing:1px;margin-bottom:8px;text-transform:uppercase}
+  .header h1{font-size:clamp(1.4rem,5vw,1.9rem);font-weight:900;position:relative}
+  .header p{font-size:clamp(.85rem,3vw,1rem);opacity:.9;font-weight:600;position:relative}
+  .progress-bar{background:var(--ice);padding:12px 20px;display:flex;align-items:center;gap:10px;border-bottom:2px solid rgba(27,77,92,.06);position:sticky;top:0;z-index:10}
+  .progress-track{flex:1;height:10px;background:rgba(27,77,92,.08);border-radius:5px;overflow:hidden}
+  .progress-fill{height:100%;background:linear-gradient(90deg,var(--teal),var(--light-teal));border-radius:5px;transition:width .5s;width:0%}
+  .progress-text{font-size:.8rem;font-weight:700;color:var(--navy);min-width:40px;text-align:right}
+  .main{max-width:520px;margin:0 auto;padding:20px 16px 100px}
+  .game-card{background:#fff;border-radius:20px;box-shadow:var(--shadow);padding:24px 20px;margin-bottom:16px;animation:slideUp .4s ease;text-align:center}
+  @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+  .q-label{font-size:.7rem;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--teal);margin-bottom:12px}
+  .info-card{background:var(--ice);border-radius:16px;padding:24px 20px;margin-bottom:20px;border:3px solid var(--teal)}
+  .info-emoji{font-size:2.5rem;margin-bottom:8px}
+  .info-text{font-size:1.15rem;font-weight:800;color:var(--navy)}
+  .info-hint{font-size:.8rem;font-weight:600;color:#888;margin-top:6px;font-style:italic}
+  .choice-row{display:flex;gap:10px}
+  .choice-btn{flex:1;padding:16px 12px;border:3px solid;border-radius:14px;font-family:'Nunito',sans-serif;font-size:.9rem;font-weight:800;cursor:pointer;transition:all .2s;background:#fff;display:flex;flex-direction:column;align-items:center;gap:4px}
+  .choice-btn:active{transform:scale(.95)}
+  .choice-btn .icon{font-size:1.5rem}
+  .btn-safe{border-color:var(--safe-green);color:var(--safe-green)}
+  .btn-safe:hover{background:var(--safe-bg);transform:translateY(-2px)}
+  .btn-private{border-color:var(--private-red);color:var(--private-red)}
+  .btn-private:hover{background:var(--private-bg);transform:translateY(-2px)}
+  .choice-btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important}
+  .choice-btn.selected-correct{color:#fff}
+  .btn-safe.selected-correct{background:var(--safe-green);border-color:var(--safe-green)}
+  .btn-private.selected-correct{background:var(--private-red);border-color:var(--private-red)}
+  .choice-btn.selected-wrong{background:#FFE0B2;border-color:#FF9800;color:#E65100}
+  .choice-btn.was-correct{box-shadow:0 0 0 3px rgba(67,160,71,.4)}
+  .feedback{margin-top:16px;padding:16px;border-radius:14px;animation:fadeIn .3s;display:none}
+  .feedback.show{display:block}
+  .feedback.correct{background:var(--safe-bg);border:2px solid var(--safe-green)}
+  .feedback.wrong{background:var(--private-bg);border:2px solid var(--private-red)}
+  @keyframes fadeIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+  .fb-icon{font-size:1.5rem;margin-bottom:4px}
+  .fb-title{font-size:.95rem;font-weight:800;margin-bottom:4px}
+  .fb-text{font-size:.85rem;line-height:1.5;font-weight:600;color:#555}
+  .next-btn{display:inline-block;margin-top:12px;padding:10px 28px;background:var(--teal);color:#fff;border:none;border-radius:10px;font-family:'Nunito',sans-serif;font-size:.9rem;font-weight:800;cursor:pointer;transition:all .2s}
+  .next-btn:hover{background:var(--navy);transform:translateY(-1px)}
+  .results-card{background:#fff;border-radius:24px;box-shadow:var(--shadow);padding:32px 24px;text-align:center;margin-bottom:20px;animation:slideUp .5s}
+  .score-circle{width:130px;height:130px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--light-teal));display:flex;flex-direction:column;align-items:center;justify-content:center;margin:0 auto 20px;color:#fff;box-shadow:0 8px 30px rgba(61,155,160,.3)}
+  .score-number{font-size:2.5rem;font-weight:900;line-height:1}
+  .score-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;opacity:.9}
+  .results-title{font-size:1.3rem;font-weight:900;margin-bottom:8px}
+  .results-msg{font-size:.95rem;line-height:1.6;font-weight:600;color:#555;margin-bottom:24px}
+  .play-again{padding:14px 40px;background:linear-gradient(135deg,var(--navy),var(--teal));color:#fff;border:none;border-radius:14px;font-family:'Nunito',sans-serif;font-size:1rem;font-weight:800;cursor:pointer;transition:all .2s}
+  .play-again:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(27,77,92,.3)}
+  .tip-box{background:linear-gradient(135deg,#FFF3E0,#FFF8E1);border-radius:16px;padding:20px;text-align:left}
+  .tip-box h3{font-size:.95rem;font-weight:800;color:#E65100;margin-bottom:8px}
+  .tip-box p{font-size:.85rem;line-height:1.6;font-weight:600;color:#555}
+  .hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="card-badge">Card 10 - Digital Activity</div>
+  <h1>Privacy Sorter</h1>
+  <p>Is it safe to share with AI?</p>
+</div>
+<div class="progress-bar">
+  <div class="progress-track"><div class="progress-fill" id="pFill"></div></div>
+  <div class="progress-text" id="pText">0/10</div>
+</div>
+<div class="main">
+  <div id="gameArea"></div>
+  <div id="resultsArea" class="hidden"></div>
+</div>
+<script>
+const items=[
+  {emoji:"🐶",text:"Your favourite animal",correct:"safe",hint:"General interest",why:"This is just a preference. No one can use it to find you or harm you."},
+  {emoji:"🔑",text:"Your password",correct:"private",hint:"Account security",why:"Never share passwords with AI or anyone online. Someone could access your accounts."},
+  {emoji:"📍",text:"Your home address",correct:"private",hint:"Personal location",why:"Your address tells people where you live. It should stay private and never go into an AI tool."},
+  {emoji:"🎨",text:"Your favourite colour",correct:"safe",hint:"General preference",why:"A colour preference is harmless. No one can identify or locate you from it."},
+  {emoji:"📱",text:"Your phone number",correct:"private",hint:"Contact info",why:"Phone numbers are personal. Sharing them with AI could expose them to data leaks."},
+  {emoji:"📚",text:"A topic you are studying at school",correct:"safe",hint:"School subject",why:"Telling AI you are studying volcanoes is fine. It can even help you learn more!"},
+  {emoji:"🤫",text:"A secret a friend told you",correct:"private",hint:"Someone else's trust",why:"A friend's secret belongs to them, not to you. Sharing it with AI breaks their trust."},
+  {emoji:"🎂",text:"Your full name and birthday",correct:"private",hint:"Identity info",why:"Your full name plus birthday can be used to identify you. Keep this combination private."},
+  {emoji:"🌍",text:"What country you live in",correct:"safe",hint:"General location",why:"A country is broad enough to be safe. It does not reveal where you actually are."},
+  {emoji:"💳",text:"A parent's credit card number",correct:"private",hint:"Financial data",why:"Financial information is very private. Sharing it could lead to stolen money."}
+];
+
+let cur=0,score=0,shuffled=[];
+function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b}
+
+function start(){
+  cur=0;score=0;shuffled=shuffle(items);
+  document.getElementById('resultsArea').classList.add('hidden');
+  document.getElementById('gameArea').classList.remove('hidden');
+  show();
+}
+
+function show(){
+  const it=shuffled[cur],t=shuffled.length;
+  document.getElementById('pFill').style.width=`${(cur/t)*100}%`;
+  document.getElementById('pText').textContent=`${cur}/${t}`;
+  document.getElementById('gameArea').innerHTML=`
+    <div class="game-card">
+      <div class="q-label">Item ${cur+1} of ${t}</div>
+      <div class="info-card">
+        <div class="info-emoji">${it.emoji}</div>
+        <div class="info-text">${it.text}</div>
+        <div class="info-hint">${it.hint}</div>
+      </div>
+      <div class="choice-row">
+        <button class="choice-btn btn-safe" onclick="pick('safe')"><span class="icon">✅</span> OK to share</button>
+        <button class="choice-btn btn-private" onclick="pick('private')"><span class="icon">🔒</span> Keep private</button>
+      </div>
+      <div class="feedback" id="fb"></div>
+    </div>`;
+}
+
+function pick(choice){
+  const it=shuffled[cur],ok=choice===it.correct;
+  if(ok)score++;
+  document.querySelectorAll('.choice-btn').forEach(b=>{
+    b.disabled=true;
+    const type=b.classList.contains('btn-safe')?'safe':'private';
+    if(type===choice)b.classList.add(ok?'selected-correct':'selected-wrong');
+    if(type===it.correct&&!ok)b.classList.add('was-correct');
+  });
+  const fb=document.getElementById('fb');
+  fb.className=`feedback show ${ok?'correct':'wrong'}`;
+  fb.innerHTML=`
+    <div class="fb-icon">${ok?'🎉':'🤔'}</div>
+    <div class="fb-title">${ok?'Correct!':`Not quite! This should be: ${it.correct==='safe'?'OK to share':'Keep private'}`}</div>
+    <div class="fb-text">${it.why}</div>
+    <button class="next-btn" onclick="next()">${cur<shuffled.length-1?'Next item →':'See my results →'}</button>`;
+}
+
+function next(){cur++;cur>=shuffled.length?showResults():show()}
+
+function showResults(){
+  const t=shuffled.length;
+  document.getElementById('pFill').style.width='100%';
+  document.getElementById('pText').textContent=`${t}/${t}`;
+  document.getElementById('gameArea').classList.add('hidden');
+  document.getElementById('resultsArea').classList.remove('hidden');
+  const pct=Math.round((score/t)*100);
+  let msg;
+  if(pct>=90)msg='Excellent! You really know what to keep private. You are a privacy expert!';
+  else if(pct>=70)msg='Good job! You understand most privacy rules. Remember: when in doubt, keep it private.';
+  else if(pct>=50)msg='Not bad! Some of these are tricky. The key rule: if it can identify you or someone else, do not share it.';
+  else msg='Keep learning! Privacy is really important. Ask yourself: could someone use this to find me, access my accounts, or hurt someone?';
+
+  const safeCount=shuffled.filter(i=>i.correct==='safe').length;
+  const privateCount=shuffled.filter(i=>i.correct==='private').length;
+
+  document.getElementById('resultsArea').innerHTML=`
+    <div class="results-card">
+      <div class="score-circle"><div class="score-number">${score}/${t}</div><div class="score-label">correct</div></div>
+      <div class="results-title">${pct>=70?'Great awareness!':pct>=50?'Getting there!':'Keep practising!'}</div>
+      <div class="results-msg">${msg}</div>
+      <div style="display:flex;gap:12px;justify-content:center;margin-bottom:24px">
+        <div style="padding:8px 16px;border-radius:10px;background:var(--safe-bg);color:var(--safe-green);font-size:.8rem;font-weight:800">✅ Safe: ${safeCount} items</div>
+        <div style="padding:8px 16px;border-radius:10px;background:var(--private-bg);color:var(--private-red);font-size:.8rem;font-weight:800">🔒 Private: ${privateCount} items</div>
+      </div>
+      <button class="play-again" onclick="start()">Play again</button>
+    </div>
+    <div class="tip-box">
+      <h3>Remember</h3>
+      <p>AI tools can use the information people type. Not everything should be shared. If it is private, personal, or belongs to someone else, stop and ask a trusted adult first. Passwords, addresses, phone numbers, financial info, and other people's secrets should always stay protected.</p>
+    </div>`;
+}
+start();
+</script>
+</body>
+</html>

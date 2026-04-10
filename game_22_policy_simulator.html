@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Policy Simulator – Card 22</title>
+<style>
+  :root{--bg:#0F1729;--teal:#00D4AA;--coral:#FF6B6B;--gold:#FFD166;--txt:#F0F4FF;--surf:#1A2540;--muted:#8899BB;--white:#fff}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--txt);font-family:'Segoe UI',Arial,sans-serif;min-height:100vh;padding:16px}
+  h1{color:var(--teal);font-size:1.4rem;margin-bottom:4px}
+  .badge{background:rgba(0,212,170,.15);color:var(--teal);font-family:monospace;font-size:.75rem;padding:3px 10px;border-radius:20px;display:inline-block;margin-bottom:12px;border:1px solid var(--teal)}
+  .card{background:var(--surf);border-radius:12px;padding:18px;margin-bottom:14px}
+  .label{font-family:monospace;font-size:.75rem;color:var(--teal);font-weight:700;margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em}
+  .metric-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .metric-name{width:90px;font-size:.78rem;font-family:monospace;flex-shrink:0}
+  .metric-bar-wrap{flex:1;background:rgba(255,255,255,.08);border-radius:6px;height:12px;overflow:hidden}
+  .metric-bar{height:12px;border-radius:6px;transition:width .6s ease}
+  .metric-val{width:36px;text-align:right;font-size:.78rem;font-family:monospace}
+  .scenario-box{background:var(--bg);border-radius:10px;padding:14px;margin-bottom:12px;border-left:4px solid var(--gold)}
+  .scenario-type{font-family:monospace;font-size:.72rem;color:var(--gold);margin-bottom:4px}
+  .scenario-text{font-size:.9rem;line-height:1.5}
+  .choice-col{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+  .choice-btn{border:2px solid rgba(0,212,170,.2);border-radius:10px;padding:12px 14px;cursor:pointer;background:var(--bg);transition:.2s;text-align:left}
+  .choice-btn:hover{border-color:var(--teal);background:rgba(0,212,170,.05)}
+  .choice-btn.allow{border-color:rgba(0,212,170,.4)}
+  .choice-btn.allow:hover,.choice-btn.allow.chosen{background:rgba(0,212,170,.1);border-color:var(--teal)}
+  .choice-btn.restrict{border-color:rgba(255,209,102,.4)}
+  .choice-btn.restrict:hover,.choice-btn.restrict.chosen{background:rgba(255,209,102,.08);border-color:var(--gold)}
+  .choice-btn.ban{border-color:rgba(255,107,107,.4)}
+  .choice-btn.ban:hover,.choice-btn.ban.chosen{background:rgba(255,107,107,.08);border-color:var(--coral)}
+  .choice-label{font-family:monospace;font-size:.72rem;font-weight:700;margin-bottom:2px}
+  .choice-desc{font-size:.82rem;color:var(--muted)}
+  .delta-box{border-radius:8px;padding:10px;margin-top:8px;display:none;font-size:.83rem;line-height:1.5}
+  .delta-box.show{display:block;background:rgba(0,212,170,.07);border-left:3px solid var(--teal)}
+  .btn{background:var(--teal);color:var(--bg);border:none;border-radius:8px;padding:12px 22px;font-size:.9rem;cursor:pointer;font-weight:700;width:100%;margin-top:8px;transition:.2s}
+  .btn:hover{background:#00b892}
+  .btn.outline{background:rgba(0,212,170,.1);color:var(--teal);border:1px solid var(--teal)}
+  .progress-bar-wrap{background:rgba(255,255,255,.08);border-radius:10px;height:6px;margin-bottom:16px}
+  .progress-bar{background:var(--teal);height:6px;border-radius:10px;transition:width .4s}
+  .results-panel{display:none}
+  .results-panel.show{display:block}
+  .outcome-grade{font-size:2.5rem;font-weight:900;color:var(--gold);text-align:center}
+  .trade-off-box{border-radius:8px;padding:12px;margin-bottom:8px;font-size:.85rem;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="badge">LEVEL 3 · CARD 22</div>
+<h1>Policy Simulator</h1>
+<p style="color:var(--muted);font-size:.88rem;margin-bottom:14px">You are the school principal. Make 8 AI policy decisions and watch how they affect your school's Learning, Wellbeing, Equity, and Trust.</p>
+
+<div id="game-area">
+  <div class="card">
+    <div class="label">School Metrics</div>
+    <div id="metrics-display"></div>
+  </div>
+  <div class="progress-bar-wrap"><div class="progress-bar" id="prog-bar" style="width:0%"></div></div>
+  <div id="scenario-area"></div>
+</div>
+
+<div class="results-panel" id="results-panel">
+  <div class="card" style="text-align:center">
+    <div class="label">Policy Review Complete</div>
+    <div class="outcome-grade" id="outcome-grade"></div>
+    <div style="color:var(--muted);font-size:.88rem;margin-top:6px" id="outcome-label"></div>
+  </div>
+  <div class="card">
+    <div class="label">Final Metrics</div>
+    <div id="final-metrics"></div>
+  </div>
+  <div class="card">
+    <div class="label">Your Policy in Summary</div>
+    <div id="policy-summary"></div>
+  </div>
+  <div class="card">
+    <div class="label">The Core Insight</div>
+    <div id="core-insight" style="font-size:.88rem;line-height:1.5;color:var(--muted)"></div>
+  </div>
+  <button class="btn" onclick="restart()">Try a Different Policy</button>
+</div>
+
+<script>
+const metrics = {learning:60, wellbeing:60, equity:60, trust:60};
+const metricColors = {learning:'var(--teal)', wellbeing:'var(--gold)', equity:'var(--coral)', trust:'#9ab8ff'};
+
+const scenarios = [
+  {type:'Homework', text:'Students want to use AI chatbots to help with take-home assignments.',
+   choices:[
+     {type:'allow', label:'ALLOW FREELY', desc:'Students can use AI for any homework without restrictions.', deltas:{learning:-15, wellbeing:10, equity:5, trust:-10}, fb:'More enjoyment, less struggle — but some students learn less deeply. Teachers start to distrust homework as assessment.'},
+     {type:'restrict', label:'ALLOW WITH RULES', desc:'Students may use AI to understand concepts but must write their own final work.', deltas:{learning:5, wellbeing:5, equity:5, trust:5}, fb:'A balanced approach — requires students to engage with AI as a tool, not a substitute. Trust maintained.'},
+     {type:'ban', label:'BAN COMPLETELY', desc:'No AI tools allowed for homework.', deltas:{learning:5, wellbeing:-10, equity:-10, trust:5}, fb:'Homework value preserved, but students without AI access at home already had an advantage — the ban doesn\'t change that.'},
+   ]},
+  {type:'Classroom Use', text:'A teacher wants to use AI during lessons to demonstrate concepts.',
+   choices:[
+     {type:'allow', label:'ALLOW FULLY', desc:'Teachers can use AI in class however they see fit.', deltas:{learning:10, wellbeing:8, equity:8, trust:5}, fb:'Dynamic lessons possible. Some teachers use AI brilliantly; others less so. Students see responsible adult use modelled.'},
+     {type:'restrict', label:'SUPERVISED ONLY', desc:'AI in class requires a lesson plan submitted for review.', deltas:{learning:5, wellbeing:2, equity:5, trust:10}, fb:'Careful use, but bureaucratic overhead discourages good teachers from experimenting.'},
+     {type:'ban', label:'NO AI IN LESSONS', desc:'Teachers cannot use AI tools during school hours.', deltas:{learning:-5, wellbeing:-5, equity:-5, trust:0}, fb:'Students don\'t experience AI-integrated learning. Falls behind schools that do. Equity issue: only students with home access learn with AI.'},
+   ]},
+  {type:'Exams & Tests', text:'A student asks if they can use AI to help during a graded assessment.',
+   choices:[
+     {type:'allow', label:'ALLOW IN ALL ASSESSMENTS', desc:'AI tools allowed during any graded work.', deltas:{learning:-20, wellbeing:10, equity:-5, trust:-20}, fb:'Grades no longer reflect individual understanding. Hard to know what any student actually knows. Assessment loses meaning.'},
+     {type:'restrict', label:'OPEN BOOK ONLY', desc:'AI allowed in "open book" assessments but not in closed exams.', deltas:{learning:0, wellbeing:5, equity:0, trust:5}, fb:'Sensible compromise. Closed exams test knowledge; open book tests application. Transparent rules build trust.'},
+     {type:'ban', label:'NO AI IN ANY TEST', desc:'All graded work must be completed without AI assistance.', deltas:{learning:10, wellbeing:-5, equity:-5, trust:10}, fb:'Assessments have integrity, but some students find this stressful and it doesn\'t reflect real-world work practices.'},
+   ]},
+  {type:'Essays & Written Work', text:'A student submits a written essay. The teacher suspects AI wrote significant portions of it.',
+   choices:[
+     {type:'allow', label:'ACCEPT IT', desc:'The policy allows AI-assisted writing so there\'s nothing to investigate.', deltas:{learning:-15, wellbeing:5, equity:-5, trust:-15}, fb:'No investigation needed — but did the student learn to write? The skill gap grows silently.'},
+     {type:'restrict', label:'VERBAL FOLLOW-UP', desc:'Ask the student to talk through their essay. Can they explain and defend it?', deltas:{learning:10, wellbeing:-3, equity:3, trust:10}, fb:'Elegant solution. A student who genuinely engaged with their essay can discuss it. One who didn\'t cannot. Develops accountability.'},
+     {type:'ban', label:'ZERO AND REPORT', desc:'Treat it as academic dishonesty. Zero mark, formal record.', deltas:{learning:0, wellbeing:-15, equity:-10, trust:-5}, fb:'Sends a strong message, but punishes a student for using a tool many adults use daily. Equity issue: wealthier students use better AI tools and may be harder to detect.'},
+   ]},
+  {type:'Digital Divide', text:'Some students have fast internet and AI tools at home. Others do not.',
+   choices:[
+     {type:'allow', label:'PROVIDE SCHOOL AI ACCOUNTS', desc:'Give every student access to approved AI tools through school.', deltas:{learning:10, wellbeing:8, equity:20, trust:10}, fb:'Levels the playing field significantly. Students without home access now have equal opportunity. Highest equity gain.'},
+     {type:'restrict', label:'LIBRARY AI STATIONS', desc:'Make AI tools available in the library during school hours.', deltas:{learning:5, wellbeing:3, equity:10, trust:5}, fb:'Partial solution — students with evening access at home still have an advantage. Better than nothing.'},
+     {type:'ban', label:'IGNORE THE ISSUE', desc:'Focus on equal rules, not equal access.', deltas:{learning:0, wellbeing:0, equity:-15, trust:-10}, fb:'Equal rules on top of unequal access is still unequal. Students who lack home AI access fall further behind those who have it.'},
+   ]},
+  {type:'AI Literacy', text:'Should the school teach students how AI works as part of the curriculum?',
+   choices:[
+     {type:'allow', label:'DEDICATED AI LESSONS', desc:'Weekly AI literacy lessons from Year 7 upward.', deltas:{learning:12, wellbeing:5, equity:10, trust:15}, fb:'Students develop informed, critical relationship with AI. They become users who understand what they\'re using. Strong long-term investment.'},
+     {type:'restrict', label:'INTEGRATED ONLY', desc:'AI literacy embedded in existing subjects when relevant.', deltas:{learning:8, wellbeing:3, equity:5, trust:8}, fb:'Efficient but inconsistent. Quality depends on individual teachers\' knowledge. Better than nothing, less thorough than dedicated lessons.'},
+     {type:'ban', label:'NO CHANGE TO CURRICULUM', desc:'Current subjects are sufficient. AI is not the school\'s responsibility.', deltas:{learning:-5, wellbeing:-3, equity:-8, trust:-5}, fb:'Students leave school with no structured AI education, relying on self-learning or misinformation. Competitive disadvantage.'},
+   ]},
+  {type:'Transparency', text:'A parent asks: "Does this school use AI to assess my child\'s work or behaviour?"',
+   choices:[
+     {type:'allow', label:'FULL TRANSPARENCY', desc:'Publish a clear policy listing every AI tool the school uses and how.', deltas:{learning:0, wellbeing:5, equity:5, trust:20}, fb:'Trust increases significantly. Parents and students know exactly what systems are in use. Harder for the school to quietly expand AI use.'},
+     {type:'restrict', label:'AVAILABLE ON REQUEST', desc:'Information available if parents ask, not proactively shared.', deltas:{learning:0, wellbeing:0, equity:0, trust:5}, fb:'Legal minimum. Some parents find out, others don\'t. Partial transparency. Trust improves slightly.'},
+     {type:'ban', label:'INTERNAL POLICY ONLY', desc:'AI use decisions are internal and not shared with families.', deltas:{learning:0, wellbeing:-5, equity:-5, trust:-20}, fb:'Significant trust damage if discovered. Parents feel deceived. Students feel surveilled. Damages the school\'s relationship with families.'},
+   ]},
+  {type:'Teacher Wellbeing', text:'Teachers say marking and admin tasks take 3 hours per day. An AI tool could halve this.',
+   choices:[
+     {type:'allow', label:'ADOPT THE AI TOOL', desc:'Implement AI marking assistant for all teachers.', deltas:{learning:5, wellbeing:15, equity:5, trust:5}, fb:'Teachers get more time for actual teaching, student relationships, and rest. Positive impact on school culture.'},
+     {type:'restrict', label:'PILOT WITH VOLUNTEERS', desc:'Teachers who want to try it can, for one semester.', deltas:{learning:3, wellbeing:8, equity:2, trust:8}, fb:'Careful rollout. Allows evaluation before full commitment. Creates a two-tier system temporarily.'},
+     {type:'ban', label:'REJECT — MARKING IS TEACHER WORK', desc:'All assessment must remain fully teacher-driven.', deltas:{learning:0, wellbeing:-8, equity:0, trust:5}, fb:'Preserves teacher judgment but maintains unsustainable workload. Some teachers burn out and leave. Student relationships suffer.'},
+   ]},
+];
+
+let current = 0, choices = [], choiceMade = false;
+
+function renderMetrics(m){
+  return ['learning','wellbeing','equity','trust'].map(k => `
+    <div class="metric-row">
+      <div class="metric-name" style="color:${metricColors[k]}">${k.toUpperCase()}</div>
+      <div class="metric-bar-wrap"><div class="metric-bar" style="width:${Math.max(0,Math.min(100,m[k]))}%;background:${metricColors[k]}"></div></div>
+      <div class="metric-val" style="color:${metricColors[k]}">${Math.round(Math.max(0,Math.min(100,m[k])))}%</div>
+    </div>`).join('');
+}
+
+function showScenario(){
+  if(current >= scenarios.length){ showResults(); return; }
+  document.getElementById('metrics-display').innerHTML = renderMetrics(metrics);
+  document.getElementById('prog-bar').style.width = (current/scenarios.length*100) + '%';
+  const sc = scenarios[current];
+  choiceMade = false;
+  document.getElementById('scenario-area').innerHTML = `
+    <div class="card">
+      <div style="font-family:monospace;font-size:.72rem;color:var(--muted);margin-bottom:6px">DECISION ${current+1} OF ${scenarios.length}</div>
+      <div class="scenario-box">
+        <div class="scenario-type">${sc.type}</div>
+        <div class="scenario-text">${sc.text}</div>
+      </div>
+      <div class="label">Your Decision:</div>
+      <div class="choice-col">
+        ${sc.choices.map((ch,i)=>`
+          <div class="choice-btn ${ch.type}" onclick="makeChoice(${i})" id="choice-${i}">
+            <div class="choice-label" style="color:${ch.type==='allow'?'var(--teal)':ch.type==='restrict'?'var(--gold)':'var(--coral)'}">${ch.label}</div>
+            <div class="choice-desc">${ch.desc}</div>
+          </div>`).join('')}
+      </div>
+      <div class="delta-box" id="delta-box"></div>
+      <button class="btn" id="cont-btn" onclick="nextScenario()" style="display:none">${current < scenarios.length-1 ? 'Next Decision →' : 'See Final Results →'}</button>
+    </div>`;
+}
+
+function makeChoice(idx){
+  if(choiceMade) return;
+  choiceMade = true;
+  const sc = scenarios[current];
+  const ch = sc.choices[idx];
+  choices.push({type:ch.type, label:ch.label, topic:sc.type});
+  document.querySelectorAll('.choice-btn').forEach(b=>b.onclick=null);
+  document.getElementById('choice-'+idx).classList.add('chosen');
+
+  // Apply deltas
+  Object.keys(ch.deltas).forEach(k => {
+    metrics[k] = Math.max(0, Math.min(100, metrics[k] + ch.deltas[k]));
+  });
+  document.getElementById('metrics-display').innerHTML = renderMetrics(metrics);
+
+  // Show feedback
+  const db = document.getElementById('delta-box');
+  db.className = 'delta-box show';
+  const dElems = Object.entries(ch.deltas).map(([k,v]) => `<span style="font-family:monospace;font-size:.75rem;color:${v>0?'var(--teal)':v<0?'var(--coral)':'var(--muted)'};margin-right:8px">${k.toUpperCase()} ${v>0?'+'+v:v}</span>`).join('');
+  db.innerHTML = dElems + `<br><span style="color:var(--muted);font-size:.82rem">${ch.fb}</span>`;
+  document.getElementById('cont-btn').style.display='block';
+}
+
+function nextScenario(){ current++; showScenario(); }
+
+function showResults(){
+  document.getElementById('game-area').style.display='none';
+  document.getElementById('results-panel').classList.add('show');
+
+  const avg = (metrics.learning + metrics.wellbeing + metrics.equity + metrics.trust)/4;
+  let grade, gLabel;
+  if(avg >= 75){ grade='A'; gLabel='Thoughtful, balanced policy — strong outcomes across all metrics.'; }
+  else if(avg >= 60){ grade='B'; gLabel='Good policy with some tradeoffs. Most students benefit.'; }
+  else if(avg >= 45){ grade='C'; gLabel='Mixed outcomes. Some areas need attention.'; }
+  else { grade='D'; gLabel='Significant imbalances created. Consider what your school is optimising for.'; }
+
+  document.getElementById('outcome-grade').textContent = grade;
+  document.getElementById('outcome-label').textContent = gLabel;
+  document.getElementById('final-metrics').innerHTML = renderMetrics(metrics);
+
+  const allowCount = choices.filter(c=>c.type==='allow').length;
+  const restrictCount = choices.filter(c=>c.type==='restrict').length;
+  const banCount = choices.filter(c=>c.type==='ban').length;
+  document.getElementById('policy-summary').innerHTML = `
+    <div style="font-size:.88rem;color:var(--muted)">Your policy tended toward:</div>
+    <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+      <span style="background:rgba(0,212,170,.1);color:var(--teal);border-radius:6px;padding:4px 10px;font-family:monospace;font-size:.8rem">ALLOW: ${allowCount}</span>
+      <span style="background:rgba(255,209,102,.1);color:var(--gold);border-radius:6px;padding:4px 10px;font-family:monospace;font-size:.8rem">RESTRICT: ${restrictCount}</span>
+      <span style="background:rgba(255,107,107,.1);color:var(--coral);border-radius:6px;padding:4px 10px;font-family:monospace;font-size:.8rem">BAN: ${banCount}</span>
+    </div>`;
+
+  let insight = '';
+  if(banCount >= 5) insight = 'Your policy leaned heavily toward restriction. Equity and wellbeing suffered — strict policies often disadvantage those who lack alternative access. Students who wanted to learn with AI found ways to do it anyway, just without school support.';
+  else if(allowCount >= 5) insight = 'Your policy leaned toward openness. Learning and trust were mixed — some students thrived, but without structure, assessment integrity suffered. Open policies require strong AI literacy to work.';
+  else insight = 'Your mixed approach reflects the reality that good policy requires context-sensitivity. No single rule fits every situation. The most effective AI policies in real schools share one thing: they are clear, consistent, and involve students in the process.';
+  document.getElementById('core-insight').textContent = insight;
+}
+
+function restart(){
+  Object.assign(metrics, {learning:60, wellbeing:60, equity:60, trust:60});
+  current=0; choices=[];
+  document.getElementById('results-panel').classList.remove('show');
+  document.getElementById('game-area').style.display='block';
+  showScenario();
+}
+
+showScenario();
+</script>
+</body>
+</html>

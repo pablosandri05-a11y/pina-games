@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Mapper – Card 16</title>
+<style>
+  :root{--bg:#FFF8EE;--orange:#E8722A;--green:#2D6A4F;--amber:#F4C542;--dark:#1A1A2E;--slate:#5C5C7A;--light-o:#FDE8D0;--light-g:#EBF5EE;--white:#fff}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--dark);font-family:'Segoe UI',Arial,sans-serif;min-height:100vh;padding:16px}
+  h1{color:var(--orange);font-size:1.4rem;margin-bottom:4px}
+  .badge{background:var(--light-o);color:var(--orange);font-family:monospace;font-size:.75rem;padding:3px 10px;border-radius:20px;display:inline-block;margin-bottom:12px}
+  .card{background:var(--white);border-radius:12px;padding:18px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,.07)}
+  .label{font-family:monospace;font-size:.75rem;color:var(--orange);font-weight:700;margin-bottom:8px;text-transform:uppercase}
+  .data-type-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+  .data-type-btn{border:2px solid #ddd;border-radius:10px;padding:14px 10px;text-align:center;cursor:pointer;background:var(--white);transition:.2s}
+  .data-type-btn:hover{border-color:var(--orange);background:var(--light-o)}
+  .data-type-btn.active{border-color:var(--orange);background:var(--light-o)}
+  .data-type-btn .icon{font-size:1.8rem;display:block;margin-bottom:6px}
+  .data-type-btn .name{font-size:.85rem;font-weight:700}
+  .flow-step{border-radius:10px;padding:14px;margin-bottom:10px;border-left:4px solid var(--amber);background:var(--white);box-shadow:0 2px 6px rgba(0,0,0,.06);animation:slideIn .3s ease}
+  @keyframes slideIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+  .flow-step .step-label{font-family:monospace;font-size:.72rem;color:var(--orange);margin-bottom:4px}
+  .flow-step .step-title{font-weight:700;font-size:.9rem;margin-bottom:4px}
+  .flow-step .step-body{font-size:.85rem;color:var(--slate);line-height:1.5}
+  .flow-arrow{text-align:center;font-size:1.2rem;color:var(--orange);margin:-4px 0;padding:2px}
+  .choice-wrap{margin-top:10px}
+  .choice-btn{display:block;width:100%;border:2px solid #ddd;border-radius:8px;padding:10px 14px;margin-bottom:8px;cursor:pointer;background:var(--white);text-align:left;font-size:.88rem;transition:.2s}
+  .choice-btn:hover{border-color:var(--orange);background:var(--light-o)}
+  .outcome{border-radius:10px;padding:16px;margin-top:10px;display:none}
+  .outcome.show{display:block}
+  .outcome.safe{background:var(--light-g);border-left:4px solid var(--green)}
+  .outcome.risky{background:#fff0e0;border-left:4px solid var(--orange)}
+  .outcome.bad{background:#fff0f0;border-left:4px solid #e55}
+  .btn{background:var(--orange);color:#fff;border:none;border-radius:8px;padding:12px 22px;font-size:.9rem;cursor:pointer;font-weight:700;width:100%;transition:.2s;margin-top:8px}
+  .btn:hover{background:#c85e1a}
+  .btn.green{background:var(--green)}
+  .phase{display:none}
+  .phase.active{display:block}
+  .stat-badge{display:inline-block;background:var(--light-o);color:var(--orange);border-radius:6px;padding:3px 8px;font-size:.78rem;font-family:monospace;margin:2px}
+</style>
+</head>
+<body>
+<div class="badge">LEVEL 2 · CARD 16</div>
+<h1>Data Mapper</h1>
+<p style="color:var(--slate);font-size:.88rem;margin-bottom:14px">Follow your data through every decision point — from the moment you share it to where it might end up.</p>
+
+<div class="phase active" id="phase-pick">
+  <div class="card">
+    <div class="label">Step 1 — What data are you sharing?</div>
+    <p style="font-size:.88rem;color:var(--slate);margin-bottom:12px">Choose one type of personal data you might share with an AI tool.</p>
+    <div class="data-type-grid" id="data-type-grid">
+      <div class="data-type-btn" onclick="pickData(0)"><span class="icon">📛</span><span class="name">Your name + school</span></div>
+      <div class="data-type-btn" onclick="pickData(1)"><span class="icon">🤒</span><span class="name">A health question</span></div>
+      <div class="data-type-btn" onclick="pickData(2)"><span class="icon">📸</span><span class="name">Your photo</span></div>
+      <div class="data-type-btn" onclick="pickData(3)"><span class="icon">📝</span><span class="name">A school essay</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="phase" id="phase-flow">
+  <div class="card" id="data-start-card">
+    <div class="label">Your Data Journey</div>
+    <div id="data-start-info"></div>
+  </div>
+  <div id="flow-container"></div>
+  <div class="outcome" id="final-outcome"></div>
+  <button class="btn" id="restart-btn" onclick="restart()" style="display:none">Try a Different Data Type</button>
+</div>
+
+<script>
+const dataTypes = [
+  {icon:'📛', name:'Your name + school', risk:'medium',
+   journey:[
+     {label:'STEP 1', title:'Sent to the server', body:'Your name and school are transmitted to the company\'s servers, often over an encrypted connection.', border:'#F4C542'},
+     {label:'STEP 2', title:'Stored in a database', body:'The data is stored — possibly indefinitely, unless you request deletion. Most services retain logs for months or years.', border:'#E8722A'},
+     {label:'STEP 3', title:'Could be used for model training', body:'Depending on the privacy policy, your inputs may be used to improve the AI model. You may be able to opt out — if you know the option exists.', border:'#E8722A', choice:{q:'Does the company say they train on user data?', opts:['Yes — your data helps train the AI', 'No — they say they don\'t use your data for training', 'Unclear — the policy is vague'], outcomes:[{cls:'risky',txt:'Your data may appear in future AI outputs or influence model behaviour. This is often disclosed in the small print.'},{cls:'safe',txt:'Better policy — though "not used for training" can have exceptions (e.g. trust and safety review).'},{cls:'bad',txt:'Vague policies give companies maximum flexibility. Without clarity, assume your data could be used.'}]}},
+     {label:'STEP 4', title:'Possible third-party sharing', body:'Many services share data with "partners" — advertisers, analytics companies, or governments in certain jurisdictions.', border:'#5C5C7A'},
+   ],
+   summary:'Even your name and school, combined, can identify you, locate you, and be used to build a profile. Understanding what you share — and when — is the first step.'},
+  {icon:'🤒', name:'A health question', risk:'high',
+   journey:[
+     {label:'STEP 1', title:'Typed into the chatbot', body:'You ask an AI "could my headache be something serious?" — or something more personal. The text is sent to the server.', border:'#E8722A'},
+     {label:'STEP 2', title:'Flagged as health data', body:'Health information is among the most sensitive categories under privacy law (e.g. GDPR in Europe). Special rules apply — but not all AI tools follow them.', border:'#E8722A'},
+     {label:'STEP 3', title:'Retained for liability review', body:'AI companies often retain health queries for legal review, model safety audits, or to defend against lawsuits.', border:'#F4C542', choice:{q:'Should this change how you use AI for health questions?', opts:['No — I\'ll keep asking whatever I want', 'Yes — I\'ll be more careful about what I share', 'I\'ll use a health-specific, regulated service instead'], outcomes:[{cls:'risky',txt:'Your call — but remember that health data is uniquely sensitive and can affect insurance, employment, and more.'},{cls:'safe',txt:'Thoughtful! You can still ask general health questions without sharing personally identifying details.'},{cls:'safe',txt:'Smart choice. Regulated health services have stronger data protections. General AI tools are not medical tools.'}]}},
+     {label:'STEP 4', title:'Not deleted when you close the tab', body:'Most AI conversations are not deleted when you close the app. Some services have a "clear history" option — but not all.', border:'#5C5C7A'},
+   ],
+   summary:'Health data is among the most sensitive — and most valuable — types of personal data. Knowing what you share, and who holds it, is a form of self-protection.'},
+  {icon:'📸', name:'Your photo', risk:'high',
+   journey:[
+     {label:'STEP 1', title:'Uploaded to a server', body:'Your photo is processed on remote servers. Even if "not stored", it may be temporarily cached during processing.', border:'#E8722A'},
+     {label:'STEP 2', title:'Facial recognition possible', body:'AI tools can extract facial geometry data from photos — information that can identify you, even without a name.', border:'#E8722A'},
+     {label:'STEP 3', title:'Biometric data created', body:'Biometric data (face measurements) may be retained separately from the original photo — and is regulated differently in some countries.', border:'#E8722A', choice:{q:'You upload a photo of yourself and a friend. What happens to your friend\'s data?', opts:['Nothing — they didn\'t share it', 'They may also have biometric data extracted and stored', 'Only my data is processed'], outcomes:[{cls:'risky',txt:'Actually — you shared their data without their consent. This is a real ethical issue with photo-sharing AI tools.'},{cls:'bad',txt:'Correct — and this happens without your friend knowing or agreeing. Their data was shared by you, on their behalf.'},{cls:'risky',txt:'Unfortunately, both faces in a photo may be processed. The friend in the background has no idea.'}]}},
+     {label:'STEP 4', title:'May be used in training datasets', body:'Some AI image tools have used uploaded photos in training datasets — sometimes without clear disclosure. Reverse image search can sometimes reveal this.', border:'#5C5C7A'},
+   ],
+   summary:'Photos are data-rich — they contain your face, your location (if geotagged), other people, and context clues. Think before you upload.'},
+  {icon:'📝', name:'A school essay', risk:'low',
+   journey:[
+     {label:'STEP 1', title:'Text processed by AI', body:'Your essay is analysed to generate feedback, corrections, or a summary. The content is read by the AI system.', border:'#F4C542'},
+     {label:'STEP 2', title:'Stored as a conversation log', body:'Most services keep a log of your input alongside the AI response. This log may be accessible to the company.', border:'#F4C542'},
+     {label:'STEP 3', title:'Could train the model', body:'Your essay — your ideas, your argument structure — could become part of future AI training data.', border:'#E8722A', choice:{q:'Your essay is about a topic you care deeply about. Should the AI company be allowed to learn from it without asking you?', opts:['Yes — it helps improve AI for everyone', 'No — my ideas and writing should be mine', 'It depends on whether it\'s anonymised'], outcomes:[{cls:'safe',txt:'That\'s one view — and it\'s reasonable. But consider: would you want credit if your style influenced the AI?'},{cls:'safe',txt:'That\'s also a reasonable view. This is the basis of ongoing debates about intellectual property and AI training.'},{cls:'safe',txt:'Anonymisation helps, but isn\'t perfect — especially for distinctive writing styles. This is a genuinely unsettled question.'}]}},
+     {label:'STEP 4', title:'Possible plagiarism detection conflict', body:'Some schools use plagiarism detection tools that may conflict with AI editing tools. If AI edited your essay, some systems may flag it incorrectly.', border:'#5C5C7A'},
+   ],
+   summary:'Even academic writing contains ideas, perspectives, and creative thinking that belong to you. Understanding how your intellectual work is used by AI companies is a growing issue.'},
+];
+
+let current = null, step = 0, flowDiv;
+
+function pickData(idx){
+  current = dataTypes[idx];
+  step = 0;
+  document.getElementById('phase-pick').classList.remove('active');
+  document.getElementById('phase-flow').classList.add('active');
+  document.getElementById('data-start-info').innerHTML = `<div style="font-size:1.6rem;margin-bottom:6px">${current.icon}</div><div style="font-weight:700;font-size:.95rem;margin-bottom:4px">Tracking: ${current.name}</div><div style="font-size:.82rem;color:var(--slate)">Follow every decision point your data passes through.</div>`;
+  flowDiv = document.getElementById('flow-container');
+  flowDiv.innerHTML = '';
+  document.getElementById('final-outcome').style.display = 'none';
+  document.getElementById('restart-btn').style.display = 'none';
+  showStep(0);
+}
+
+function showStep(i){
+  if(i >= current.journey.length){ showSummary(); return; }
+  const s = current.journey[i];
+  const div = document.createElement('div');
+  if(i > 0){ const arr = document.createElement('div'); arr.className='flow-arrow'; arr.textContent='↓'; flowDiv.appendChild(arr); }
+  div.className = 'flow-step';
+  div.style.borderLeftColor = s.border;
+  div.innerHTML = `<div class="step-label">${s.label}</div><div class="step-title">${s.title}</div><div class="step-body">${s.body}</div>`;
+  if(s.choice){
+    const cw = document.createElement('div');
+    cw.className = 'choice-wrap';
+    cw.innerHTML = `<div style="font-family:monospace;font-size:.78rem;color:var(--orange);margin-bottom:6px">${s.choice.q}</div>` +
+      s.choice.opts.map((o,oi) => `<button class="choice-btn" onclick="chooseOption(${i},${oi})">${o}</button>`).join('');
+    div.appendChild(cw);
+  } else {
+    const nextBtn = document.createElement('button');
+    nextBtn.className = 'btn';
+    nextBtn.style.marginTop = '10px';
+    nextBtn.textContent = i < current.journey.length-1 ? 'Continue →' : 'See Summary →';
+    nextBtn.onclick = () => { nextBtn.remove(); showStep(i+1); };
+    div.appendChild(nextBtn);
+  }
+  flowDiv.appendChild(div);
+  div.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function chooseOption(stepIdx, optIdx){
+  const s = current.journey[stepIdx];
+  const cw = document.querySelector('.choice-wrap');
+  if(cw){ cw.innerHTML = `<div style="background:var(--light-o);border-radius:6px;padding:8px;font-size:.85rem;margin-top:6px"><strong>${s.choice.opts[optIdx]}</strong><br>${s.choice.outcomes[optIdx].txt}</div>`; }
+  const nextBtn = document.createElement('button');
+  nextBtn.className = 'btn';
+  nextBtn.style.marginTop = '10px';
+  nextBtn.textContent = stepIdx < current.journey.length-1 ? 'Continue →' : 'See Summary →';
+  nextBtn.onclick = () => { nextBtn.remove(); showStep(stepIdx+1); };
+  const last = flowDiv.lastElementChild;
+  if(last) last.appendChild(nextBtn);
+}
+
+function showSummary(){
+  const fo = document.getElementById('final-outcome');
+  fo.className = 'outcome show ' + (current.risk==='high'?'bad':current.risk==='medium'?'risky':'safe');
+  fo.innerHTML = `<div style="font-family:monospace;font-size:.8rem;font-weight:700;margin-bottom:6px">DATA JOURNEY COMPLETE</div><p style="font-size:.88rem;line-height:1.5">${current.summary}</p><div style="margin-top:10px;font-size:.8rem;font-family:monospace">YOUR RIGHTS: <span class="stat-badge">Ask to see your data</span><span class="stat-badge">Ask for deletion</span><span class="stat-badge">Opt out of training</span></div>`;
+  document.getElementById('restart-btn').style.display = 'block';
+}
+
+function restart(){
+  document.getElementById('phase-flow').classList.remove('active');
+  document.getElementById('phase-pick').classList.add('active');
+}
+</script>
+</body>
+</html>

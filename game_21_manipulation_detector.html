@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Manipulation Detector – Card 21</title>
+<style>
+  :root{--bg:#0F1729;--teal:#00D4AA;--coral:#FF6B6B;--gold:#FFD166;--txt:#F0F4FF;--surf:#1A2540;--muted:#8899BB;--white:#fff}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--txt);font-family:'Segoe UI',Arial,sans-serif;min-height:100vh;padding:16px}
+  h1{color:var(--teal);font-size:1.4rem;margin-bottom:4px}
+  .badge{background:rgba(0,212,170,.15);color:var(--teal);font-family:monospace;font-size:.75rem;padding:3px 10px;border-radius:20px;display:inline-block;margin-bottom:12px;border:1px solid var(--teal)}
+  .card{background:var(--surf);border-radius:12px;padding:18px;margin-bottom:14px}
+  .label{font-family:monospace;font-size:.75rem;color:var(--teal);font-weight:700;margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em}
+  .content-box{background:var(--bg);border-radius:10px;padding:14px;margin-bottom:12px;border-left:4px solid var(--gold)}
+  .content-type{font-family:monospace;font-size:.72rem;color:var(--gold);margin-bottom:6px;text-transform:uppercase}
+  .content-text{font-size:.92rem;line-height:1.6}
+  .checklist{margin-bottom:12px}
+  .check-item{display:flex;align-items:flex-start;gap:10px;padding:8px;border-radius:8px;cursor:pointer;margin-bottom:4px;transition:.15s;border:1px solid rgba(0,212,170,.1)}
+  .check-item:hover{background:rgba(0,212,170,.05);border-color:rgba(0,212,170,.3)}
+  .check-item input[type=checkbox]{width:18px;height:18px;accent-color:var(--teal);flex-shrink:0;margin-top:1px;cursor:pointer}
+  .check-label{font-size:.85rem;line-height:1.4}
+  .check-label .signal-name{font-weight:700;font-family:monospace;font-size:.78rem;color:var(--teal)}
+  .check-label .signal-desc{color:var(--muted)}
+  .btn{background:var(--teal);color:var(--bg);border:none;border-radius:8px;padding:12px 22px;font-size:.9rem;cursor:pointer;font-weight:700;width:100%;margin-top:8px;transition:.2s}
+  .btn:hover{background:#00b892}
+  .btn.outline{background:rgba(0,212,170,.1);color:var(--teal);border:1px solid var(--teal)}
+  .verdict-box{border-radius:10px;padding:14px;margin-top:8px;display:none}
+  .verdict-box.show{display:block}
+  .verdict-box.real{background:rgba(0,212,170,.1);border-left:4px solid var(--teal)}
+  .verdict-box.fake{background:rgba(255,107,107,.1);border-left:4px solid var(--coral)}
+  .verdict-box.mixed{background:rgba(255,209,102,.1);border-left:4px solid var(--gold)}
+  .progress-dots{display:flex;gap:6px;margin-bottom:14px}
+  .dot{width:22px;height:8px;border-radius:4px;background:rgba(255,255,255,.1);transition:.3s}
+  .dot.done-real{background:var(--teal)}
+  .dot.done-fake{background:var(--coral)}
+  .dot.current{background:var(--gold)}
+  .score-panel{display:none;text-align:center;padding:20px}
+  .score-panel.show{display:block}
+  .score-big{font-size:3rem;font-weight:900;color:var(--teal)}
+  .signal-pill{display:inline-block;background:rgba(0,212,170,.1);color:var(--teal);font-size:.73rem;font-family:monospace;border-radius:4px;padding:2px 7px;margin:2px;border:1px solid rgba(0,212,170,.3)}
+  .signal-pill.coral{background:rgba(255,107,107,.1);color:var(--coral);border-color:rgba(255,107,107,.3)}
+</style>
+</head>
+<body>
+<div class="badge">LEVEL 3 · CARD 21</div>
+<h1>The Manipulation Detector</h1>
+<p style="color:var(--muted);font-size:.88rem;margin-bottom:14px">Examine 6 pieces of content. For each, check which manipulation signals you can spot. Then see the analysis.</p>
+
+<div class="progress-dots" id="dots"></div>
+
+<div id="main-game">
+  <div class="card" id="content-card">
+    <div id="item-num" style="font-family:monospace;font-size:.78rem;color:var(--muted);margin-bottom:8px"></div>
+    <div id="content-display"></div>
+    <div class="label" style="margin-top:4px">MANIPULATION SIGNALS — check all that apply:</div>
+    <div class="checklist" id="checklist"></div>
+    <button class="btn" onclick="submitItem()">Analyse This Item →</button>
+    <div class="verdict-box" id="verdict-box">
+      <div id="verdict-inner"></div>
+    </div>
+    <button class="btn" id="next-btn" onclick="nextItem()" style="display:none;background:rgba(0,212,170,.1);color:var(--teal);border:1px solid var(--teal)">Next Item →</button>
+  </div>
+</div>
+
+<div class="score-panel" id="score-panel">
+  <div class="score-big" id="score-big"></div>
+  <div style="color:var(--teal);font-size:.95rem">signals correctly identified (out of possible)</div>
+  <div style="color:var(--muted);font-size:.85rem;margin-top:6px" id="score-sub"></div>
+
+  <div class="card" style="text-align:left;margin-top:14px">
+    <div class="label">Your Detection Checklist</div>
+    <p style="font-size:.82rem;color:var(--muted);margin-bottom:8px">Apply these signals to any content — not just in this game:</p>
+    <div><span class="signal-pill">Extreme emotional language</span><span class="signal-pill">Missing source</span><span class="signal-pill coral">Too-perfect image</span><span class="signal-pill coral">Implausible claim</span><span class="signal-pill">No uncertainty</span><span class="signal-pill">Designed to enrage</span><span class="signal-pill coral">Unverified quote</span><span class="signal-pill">Urgency without evidence</span></div>
+  </div>
+  <div class="card" style="text-align:left">
+    <p style="font-size:.88rem;line-height:1.5;color:var(--muted)">Manipulation is not always obvious — it is often designed to <strong style="color:var(--txt)">bypass your critical thinking</strong> by triggering emotion first. The most effective defence is slowing down: ask "who made this, why, and what do they want me to feel?"</p>
+  </div>
+  <button class="btn" onclick="restart()">Try Again</button>
+</div>
+
+<script>
+const signals = [
+  {id:'emotional', label:'Extreme emotional language', desc:'Words designed to trigger anger, fear, or outrage rather than inform'},
+  {id:'nosource', label:'No verifiable source', desc:'No author, no publication, no date, no link to evidence'},
+  {id:'implausible', label:'Implausible or exaggerated claim', desc:'Something that seems too extreme to be true without strong evidence'},
+  {id:'urgency', label:'Artificial urgency', desc:'"Share this now", "before they delete it", "everyone must see this"'},
+  {id:'quote', label:'Unverified quote or attribution', desc:'A famous person supposedly said something with no evidence'},
+  {id:'perfect', label:'Suspiciously perfect or polished', desc:'Too smooth, no imperfections, looks professionally manufactured'},
+  {id:'enrage', label:'Designed to divide or enrage', desc:'Content that seems designed to make "us" angry at "them"'},
+  {id:'nouncertainty', label:'No acknowledgement of uncertainty', desc:'Presents everything as certain fact with no nuance or caveats'},
+];
+
+const items = [
+  {type:'📰 News Headline', isFake:true,
+   text:'"SCIENTISTS CONFIRM: Common household item causes cancer in 100% of tested cases — doctors ordered to stay silent"',
+   presentSignals:['emotional','nosource','implausible','urgency'],
+   analysis:'Multiple red flags: "100% of cases" is an extraordinary claim with no source. "Ordered to stay silent" implies conspiracy with no evidence. The headline is designed to trigger fear and urgency. Real science findings are nuanced and sourced.',
+   class:'fake'},
+  {type:'📱 Social Media Post', isFake:false,
+   text:'"New study from University of Cambridge finds teenagers who sleep less than 7 hours are more likely to experience anxiety symptoms. Full paper: [doi link]. Published in Journal of Adolescent Health, March 2024."',
+   presentSignals:[],
+   analysis:'This is a low-risk content example. It cites a specific institution, a specific journal, a date, and provides a link. The claim is specific and modest. Not every post is manipulation — part of detection is recognising when signals are absent.',
+   class:'real'},
+  {type:'💬 Shared Quote', isFake:true,
+   text:'"Albert Einstein once said: \'Anyone who has never made a mistake has never tried anything new. Social media is the great enemy of thought.\'"',
+   presentSignals:['quote','nosource'],
+   analysis:'The first sentence is a real Einstein quote. The second — "social media is the great enemy of thought" — is not. Einstein died in 1955, before social media existed. This is a classic format: attach a fabricated message to a credible name.',
+   class:'fake'},
+  {type:'🖼️ Image with Caption', isFake:true,
+   text:'"BREAKING: Photo shows government officials signing secret deal to censor all online speech next month. Leaked from inside sources. Share before it\'s removed."',
+   presentSignals:['nosource','implausible','urgency','enrage','quote'],
+   analysis:'"Leaked", "secret deal", "share before removed" — all classic manipulation signals stacked together. Legitimate leaked documents come with verifiable chains of evidence. The urgency instruction "share before removed" bypasses your scepticism by making inaction feel dangerous.',
+   class:'fake'},
+  {type:'📄 Online Article', isFake:false,
+   text:'"Climate researchers have published updated projections showing the Arctic could experience ice-free summers by 2040, though some models suggest the range could extend to 2060 depending on emissions trajectories. The findings are contested by a minority of climate scientists who argue the models underestimate natural variation."',
+   presentSignals:[],
+   analysis:'This is responsible journalism: it gives a finding, a range of uncertainty, and acknowledges scientific disagreement. Real science reporting acknowledges what is uncertain. The absence of manipulation signals here is itself informative — not all content is trying to manipulate you.',
+   class:'real'},
+  {type:'🎥 Video Description', isFake:true,
+   text:'"This video proves the global elite have already built underground cities. A man who worked in the construction says the tunnels run under every major capital. Mainstream media refuses to cover this. Watch before YouTube deletes it."',
+   presentSignals:['nosource','implausible','urgency','enrage','nouncertainty'],
+   analysis:'All major red flags present. "Proves" — certainty with no evidence. "A man" — anonymous source. "Mainstream media refuses" — classic conspiracy framing that makes absence of evidence into evidence of cover-up. "Before YouTube deletes it" — urgency signal designed to make you share before you think.',
+   class:'fake'},
+];
+
+let current = 0, totalFound = 0, totalPossible = 0, results = [];
+
+function buildDots(){
+  const d = document.getElementById('dots');
+  d.innerHTML = items.map((_, i) => {
+    let cls = 'dot';
+    if(i < current) cls += results[i] ? ' done-real' : ' done-fake';
+    else if(i === current) cls += ' current';
+    return `<div class="${cls}"></div>`;
+  }).join('');
+}
+
+function showItem(){
+  if(current >= items.length){ showScore(); return; }
+  const it = items[current];
+  document.getElementById('item-num').textContent = 'ITEM ' + (current+1) + ' OF ' + items.length;
+  document.getElementById('content-display').innerHTML = `
+    <div class="content-box">
+      <div class="content-type">${it.type}</div>
+      <div class="content-text">${it.text}</div>
+    </div>`;
+  document.getElementById('checklist').innerHTML = signals.map(s => `
+    <label class="check-item" for="sig-${s.id}">
+      <input type="checkbox" id="sig-${s.id}" value="${s.id}">
+      <span class="check-label"><span class="signal-name">${s.label}</span><br><span class="signal-desc">${s.desc}</span></span>
+    </label>`).join('');
+  document.getElementById('verdict-box').className = 'verdict-box';
+  document.getElementById('verdict-box').innerHTML = '';
+  document.getElementById('next-btn').style.display = 'none';
+  buildDots();
+}
+
+function submitItem(){
+  const it = items[current];
+  const checked = [...document.querySelectorAll('#checklist input:checked')].map(i=>i.value);
+  const correct = checked.filter(s => it.presentSignals.includes(s)).length;
+  const missed = it.presentSignals.filter(s => !checked.includes(s));
+  const falsePos = checked.filter(s => !it.presentSignals.includes(s)).length;
+  totalFound += correct;
+  totalPossible += it.presentSignals.length;
+  results[current] = it.isFake ? (correct > 0) : (checked.length === 0);
+
+  const vb = document.getElementById('verdict-box');
+  vb.className = 'verdict-box show ' + it.class;
+  const realOrFake = it.isFake ? '<strong style="color:var(--coral)">MANIPULATIVE CONTENT</strong>' : '<strong style="color:var(--teal)">LEGITIMATE CONTENT</strong>';
+  let html = `<div style="margin-bottom:8px">${realOrFake}</div>`;
+  html += `<div style="font-size:.85rem;line-height:1.5;color:var(--muted);margin-bottom:8px">${it.analysis}</div>`;
+  if(it.presentSignals.length > 0){
+    html += `<div style="font-size:.75rem;font-family:monospace;color:var(--teal);margin-bottom:4px">SIGNALS PRESENT:</div>`;
+    html += it.presentSignals.map(s => {
+      const sig = signals.find(sg=>sg.id===s);
+      const found = checked.includes(s);
+      return `<span style="display:inline-block;margin:2px;padding:2px 6px;border-radius:4px;font-size:.72rem;font-family:monospace;background:${found?'rgba(0,212,170,.2)':'rgba(255,107,107,.2)'};color:${found?'var(--teal)':'var(--coral)'}">${found?'✓':'✗'} ${sig?sig.label:s}</span>`;
+    }).join('');
+  }
+  if(falsePos > 0) html += `<div style="font-size:.78rem;color:var(--gold);margin-top:6px">You flagged ${falsePos} signal(s) that weren\'t actually present — easy to do under pressure.</div>`;
+  vb.innerHTML = html;
+
+  document.querySelectorAll('#checklist input').forEach(i=>i.disabled=true);
+  document.getElementById('next-btn').style.display='block';
+  buildDots();
+}
+
+function nextItem(){ current++; showItem(); }
+
+function showScore(){
+  document.getElementById('main-game').style.display='none';
+  document.getElementById('dots').style.display='none';
+  const panel = document.getElementById('score-panel');
+  panel.classList.add('show');
+  document.getElementById('score-big').textContent = totalFound + '/' + totalPossible;
+  const msgs = ['Keep practising — these signals take time to internalise.','Solid effort — you caught many key signals.','Strong! You have a good eye for manipulation tactics.','Excellent — you could teach media literacy.'];
+  document.getElementById('score-sub').textContent = msgs[Math.min(Math.floor(totalFound/totalPossible*4), msgs.length-1)] || msgs[0];
+}
+
+function restart(){
+  current=0; totalFound=0; totalPossible=0; results=[];
+  document.getElementById('main-game').style.display='block';
+  document.getElementById('dots').style.display='flex';
+  document.getElementById('score-panel').classList.remove('show');
+  showItem();
+}
+
+showItem();
+</script>
+</body>
+</html>

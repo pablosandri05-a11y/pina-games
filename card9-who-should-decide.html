@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Who Should Decide? - Should AI Choose For You?</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --navy:#1B4D5C;--teal:#2D8A8E;--light-teal:#45B5AA;
+    --ice:#EDF5F4;--cream:#F7FAF9;
+    --ai-blue:#1976D2;--help-amber:#F57C00;--human-purple:#7B1FA2;
+    --ai-bg:#E3F2FD;--help-bg:#FFF3E0;--human-bg:#F3E5F5;
+    --shadow:0 4px 20px rgba(23,60,75,.12);
+  }
+  body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--navy);min-height:100vh;-webkit-user-select:none;user-select:none}
+  .header{background:linear-gradient(135deg,var(--navy),var(--teal));color:#fff;padding:28px 20px 24px;text-align:center;position:relative;overflow:hidden}
+  .header::before{content:'';position:absolute;top:-30px;right:-30px;width:110px;height:110px;background:rgba(255,255,255,.08);border-radius:50%}
+  .card-badge{display:inline-block;background:rgba(255,255,255,.2);padding:3px 12px;border-radius:20px;font-size:.75rem;font-weight:700;letter-spacing:1px;margin-bottom:8px;text-transform:uppercase}
+  .header h1{font-size:clamp(1.4rem,5vw,1.9rem);font-weight:900;position:relative}
+  .header p{font-size:clamp(.85rem,3vw,1rem);opacity:.9;font-weight:600;position:relative}
+  .score-bar{background:var(--ice);padding:12px 20px;display:flex;align-items:center;gap:10px;border-bottom:2px solid rgba(23,60,75,.06);position:sticky;top:0;z-index:10}
+  .score-bar .label{font-size:.8rem;font-weight:700;color:var(--navy)}
+  .score-bar .count{font-size:.85rem;font-weight:900;color:var(--teal);margin-left:auto}
+  .main{max-width:540px;margin:0 auto;padding:20px 16px 100px}
+  .instruction{text-align:center;font-size:.9rem;font-weight:700;color:var(--teal);margin-bottom:16px}
+  /* Scenario cards to sort */
+  .scenario-pile{display:flex;flex-direction:column;gap:10px;margin-bottom:20px}
+  .drag-card{background:#fff;border-radius:14px;box-shadow:var(--shadow);padding:14px 16px;cursor:grab;transition:all .2s;border-left:4px solid var(--teal);display:flex;align-items:center;gap:12px;touch-action:none}
+  .drag-card:active{cursor:grabbing}
+  .drag-card.dragging{opacity:.4;transform:scale(.95)}
+  .drag-card .emoji{font-size:1.4rem;flex-shrink:0}
+  .drag-card .text{font-size:.85rem;font-weight:700;line-height:1.4}
+  .drag-card.sorted{opacity:.5;pointer-events:none;border-left-color:#ccc}
+  /* Drop zones */
+  .zones{display:flex;flex-direction:column;gap:12px;margin-bottom:20px}
+  .zone{border-radius:16px;padding:14px;min-height:70px;border:3px dashed;transition:all .2s}
+  .zone-title{font-size:.8rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+  .zone-items{display:flex;flex-direction:column;gap:6px;min-height:30px}
+  .zone.drag-over{transform:scale(1.02)}
+  .zone-ai{border-color:var(--ai-blue);background:rgba(25,118,210,.04)}
+  .zone-ai .zone-title{color:var(--ai-blue)}
+  .zone-ai.drag-over{background:var(--ai-bg)}
+  .zone-help{border-color:var(--help-amber);background:rgba(245,124,0,.04)}
+  .zone-help .zone-title{color:var(--help-amber)}
+  .zone-help.drag-over{background:var(--help-bg)}
+  .zone-human{border-color:var(--human-purple);background:rgba(123,31,162,.04)}
+  .zone-human .zone-title{color:var(--human-purple)}
+  .zone-human.drag-over{background:var(--human-bg)}
+  .sorted-item{background:#fff;border-radius:10px;padding:8px 12px;font-size:.8rem;font-weight:700;display:flex;align-items:center;gap:8px;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+  .sorted-item.correct{border-left:3px solid #4CAF50}
+  .sorted-item.wrong{border-left:3px solid #E53935}
+  .check-btn{width:100%;padding:14px;background:linear-gradient(135deg,var(--navy),var(--teal));color:#fff;border:none;border-radius:14px;font-family:'Nunito',sans-serif;font-size:.95rem;font-weight:800;cursor:pointer;transition:all .2s;margin-top:8px}
+  .check-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(23,60,75,.2)}
+  .check-btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important}
+  .feedback{margin-top:16px;padding:16px;border-radius:14px;background:var(--ice);border:2px solid var(--teal);animation:fadeIn .3s;display:none}
+  .feedback.show{display:block}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  .feedback-title{font-size:.95rem;font-weight:800;margin-bottom:8px}
+  .feedback-text{font-size:.85rem;line-height:1.5;font-weight:600;color:#555}
+  .play-again{padding:14px 40px;background:linear-gradient(135deg,var(--navy),var(--teal));color:#fff;border:none;border-radius:14px;font-family:'Nunito',sans-serif;font-size:1rem;font-weight:800;cursor:pointer;transition:all .2s;display:block;margin:20px auto 0}
+  .play-again:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(23,60,75,.3)}
+  .results-card{background:#fff;border-radius:24px;box-shadow:var(--shadow);padding:32px 24px;text-align:center;margin-bottom:20px;animation:slideUp .5s}
+  @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+  .score-circle{width:120px;height:120px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--light-teal));display:flex;flex-direction:column;align-items:center;justify-content:center;margin:0 auto 16px;color:#fff;box-shadow:0 8px 30px rgba(45,138,142,.3)}
+  .score-number{font-size:2.2rem;font-weight:900;line-height:1}
+  .score-label{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;opacity:.9}
+  .tip-box{background:linear-gradient(135deg,#E8F5E9,#F1F8E9);border-radius:16px;padding:20px;text-align:left}
+  .tip-box h3{font-size:.95rem;font-weight:800;color:#2E7D32;margin-bottom:8px}
+  .tip-box p{font-size:.85rem;line-height:1.6;font-weight:600;color:#555}
+  .hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="card-badge">Card 9 - Digital Activity</div>
+  <h1>Who Should Decide?</h1>
+  <p>Drag each scenario to the right zone</p>
+</div>
+<div class="score-bar">
+  <span class="label">Sort all scenarios, then check your answers</span>
+  <span class="count" id="sortCount">0/8 sorted</span>
+</div>
+<div class="main">
+  <div id="gameArea"></div>
+  <div id="resultsArea" class="hidden"></div>
+</div>
+<script>
+const items=[
+  {emoji:"🎵",text:"Which song to play next based on what you liked before",correct:"ai",why:"AI is great at spotting music patterns. Low stakes, easy to skip."},
+  {emoji:"🗺️",text:"Which route to school is fastest right now",correct:"ai",why:"AI can check traffic and distance instantly. A clear data task."},
+  {emoji:"🎁",text:"What birthday gift to make for your best friend",correct:"human",why:"A gift needs to show you know and care about someone. AI does not have that relationship."},
+  {emoji:"👑",text:"Who should be class captain",correct:"human",why:"Leadership needs trust, fairness, and knowing people. A person should decide."},
+  {emoji:"📖",text:"Which book to read next",correct:"help",why:"AI can suggest books you might like, but you know your mood and interests best."},
+  {emoji:"🍽️",text:"What to cook for dinner tonight",correct:"help",why:"AI can suggest recipes from your ingredients, but you decide what you feel like eating."},
+  {emoji:"🤝",text:"Who to trust with a secret",correct:"human",why:"Trust is about feelings, loyalty, and knowing someone deeply. Only you can judge that."},
+  {emoji:"🏥",text:"Whether a patient needs medicine",correct:"help",why:"AI can help a doctor spot patterns in scans, but the doctor makes the final medical decision."}
+];
+
+let placements={},score=0,draggedId=null,touchClone=null,touchSrc=null;
+
+function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b}
+
+function startGame(){
+  placements={};score=0;
+  document.getElementById('resultsArea').classList.add('hidden');
+  document.getElementById('gameArea').classList.remove('hidden');
+  const shuffled=shuffle(items);
+  let cardsHTML=shuffled.map((it,i)=>`<div class="drag-card" id="card-${i}" data-idx="${i}" draggable="true" ontouchstart="ts(event)" ontouchmove="tm(event)" ontouchend="te(event)" ondragstart="ds(event)"><span class="emoji">${it.emoji}</span><span class="text">${it.text}</span></div>`).join('');
+
+  document.getElementById('gameArea').innerHTML=`
+    <div class="instruction">Drag each card into one of the three zones below</div>
+    <div class="scenario-pile" id="pile">${cardsHTML}</div>
+    <div class="zones">
+      <div class="zone zone-ai" id="zone-ai" ondragover="dov(event)" ondragleave="dl(event)" ondrop="dp(event,'ai')">
+        <div class="zone-title">🤖 AI can choose</div>
+        <div class="zone-items" id="items-ai"></div>
+      </div>
+      <div class="zone zone-help" id="zone-help" ondragover="dov(event)" ondragleave="dl(event)" ondrop="dp(event,'help')">
+        <div class="zone-title">🤝 AI can help, human decides</div>
+        <div class="zone-items" id="items-help"></div>
+      </div>
+      <div class="zone zone-human" id="zone-human" ondragover="dov(event)" ondragleave="dl(event)" ondrop="dp(event,'human')">
+        <div class="zone-title">🧠 Human should choose</div>
+        <div class="zone-items" id="items-human"></div>
+      </div>
+    </div>
+    <button class="check-btn" id="checkBtn" onclick="checkAll()" disabled>Check my answers</button>
+    <div class="feedback" id="feedback"></div>`;
+  updateCount();
+}
+
+// Desktop drag
+function ds(e){draggedId=e.target.closest('.drag-card').id;e.target.closest('.drag-card').classList.add('dragging')}
+function dov(e){e.preventDefault();e.currentTarget.classList.add('drag-over')}
+function dl(e){e.currentTarget.classList.remove('drag-over')}
+function dp(e,zone){e.preventDefault();e.currentTarget.classList.remove('drag-over');if(!draggedId)return;placeCard(draggedId,zone);document.querySelectorAll('.dragging').forEach(el=>el.classList.remove('dragging'));draggedId=null}
+
+// Touch
+function ts(e){const card=e.target.closest('.drag-card');if(!card||card.classList.contains('sorted'))return;draggedId=card.id;touchSrc=card;card.classList.add('dragging');touchClone=card.cloneNode(true);touchClone.style.cssText='position:fixed;z-index:1000;pointer-events:none;opacity:.85;transform:scale(1.05);width:'+card.offsetWidth+'px';document.body.appendChild(touchClone);const t=e.touches[0];touchClone.style.left=(t.clientX-40)+'px';touchClone.style.top=(t.clientY-20)+'px'}
+function tm(e){if(!touchClone)return;e.preventDefault();const t=e.touches[0];touchClone.style.left=(t.clientX-40)+'px';touchClone.style.top=(t.clientY-20)+'px';document.querySelectorAll('.zone').forEach(z=>z.classList.remove('drag-over'));const el=document.elementFromPoint(t.clientX,t.clientY);const z=el?el.closest('.zone'):null;if(z)z.classList.add('drag-over')}
+function te(e){if(!touchClone)return;const t=e.changedTouches[0];const el=document.elementFromPoint(t.clientX,t.clientY);const z=el?el.closest('.zone'):null;if(z&&draggedId){const zoneType=z.id.replace('zone-','');placeCard(draggedId,zoneType)}
+document.querySelectorAll('.zone').forEach(d=>d.classList.remove('drag-over'));if(touchSrc)touchSrc.classList.remove('dragging');if(touchClone)touchClone.remove();touchClone=null;touchSrc=null;draggedId=null}
+
+function placeCard(cardId,zone){
+  const idx=document.getElementById(cardId).dataset.idx;
+  const it=items[idx];
+  placements[cardId]={zone,idx:parseInt(idx)};
+  const card=document.getElementById(cardId);
+  card.classList.add('sorted');
+  const container=document.getElementById('items-'+zone);
+  container.innerHTML+=`<div class="sorted-item" data-card="${cardId}"><span>${it.emoji}</span> ${it.text}</div>`;
+  updateCount();
+}
+
+function updateCount(){
+  const n=Object.keys(placements).length;
+  document.getElementById('sortCount').textContent=`${n}/${items.length} sorted`;
+  const btn=document.getElementById('checkBtn');
+  if(btn)btn.disabled=n<items.length;
+}
+
+function checkAll(){
+  score=0;
+  const allSorted=document.querySelectorAll('.sorted-item');
+  allSorted.forEach(si=>{
+    const cardId=si.dataset.card;
+    const p=placements[cardId];
+    const it=items[p.idx];
+    if(p.zone===it.correct){score++;si.classList.add('correct')}
+    else si.classList.add('wrong');
+    si.innerHTML+=` <span style="font-size:.7rem;color:#888;margin-left:auto">${p.zone===it.correct?'✅':'❌ '+it.correct}</span>`;
+  });
+  document.getElementById('checkBtn').style.display='none';
+  const fb=document.getElementById('feedback');
+  fb.classList.add('show');
+  fb.innerHTML=`
+    <div class="feedback-title">${score}/${items.length} correct!</div>
+    <div class="feedback-text">${score>=7?'Excellent! You really understand when AI should help and when humans should decide.':score>=5?'Good job! Some of these are tricky because the line between help and decide is not always clear.':'Keep thinking about it! The key question is: does this choice need feelings, relationships, or responsibility?'}</div>
+    <button class="next-btn" onclick="showResults()" style="margin-top:12px;padding:10px 28px;background:var(--teal);color:#fff;border:none;border-radius:10px;font-family:Nunito;font-size:.9rem;font-weight:800;cursor:pointer">See full results →</button>`;
+}
+
+function showResults(){
+  document.getElementById('gameArea').classList.add('hidden');
+  document.getElementById('resultsArea').classList.remove('hidden');
+  let explanations=items.map(it=>`<div style="display:flex;gap:8px;align-items:flex-start;padding:8px 0;border-bottom:1px solid #eee"><span style="font-size:1.1rem">${it.emoji}</span><div><div style="font-size:.8rem;font-weight:800">${it.text}</div><div style="font-size:.75rem;color:#777;font-weight:600">${it.why}</div></div></div>`).join('');
+
+  document.getElementById('resultsArea').innerHTML=`
+    <div class="results-card">
+      <div class="score-circle"><div class="score-number">${score}/${items.length}</div><div class="score-label">correct</div></div>
+      <div style="font-size:1.2rem;font-weight:900;margin-bottom:16px">${score>=7?'Great understanding!':score>=5?'Good effort!':'Keep exploring!'}</div>
+      <div style="text-align:left;margin-bottom:20px">${explanations}</div>
+      <button class="play-again" onclick="startGame()">Play again</button>
+    </div>
+    <div class="tip-box">
+      <h3>Remember</h3>
+      <p>AI can find patterns and make recommendations. But important choices also involve feelings, relationships, goals, and responsibility. AI can suggest. People decide.</p>
+    </div>`;
+}
+startGame();
+</script>
+</body>
+</html>

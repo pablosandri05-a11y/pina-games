@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TrustMeter - Should You Trust AI?</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --dark-teal: #1B4D5C;
+    --mid-teal: #3D9BA0;
+    --light-teal: #5CC5C0;
+    --ice-blue: #E8F4F8;
+    --cream: #F5F9FA;
+    --trust-green: #4CAF50;
+    --check-amber: #FF9800;
+    --reject-red: #E53935;
+    --trust-green-bg: #E8F5E9;
+    --check-amber-bg: #FFF3E0;
+    --reject-red-bg: #FFEBEE;
+    --purple: #7E57C2;
+    --shadow: 0 4px 20px rgba(27, 77, 92, 0.15);
+  }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--cream);
+    color: var(--dark-teal);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .header {
+    background: linear-gradient(135deg, var(--dark-teal), var(--mid-teal));
+    color: white;
+    padding: 28px 20px 24px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 120px; height: 120px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 50%;
+  }
+
+  .header::after {
+    content: '';
+    position: absolute;
+    bottom: -30px; left: 20px;
+    width: 80px; height: 80px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 50%;
+  }
+
+  .header h1 {
+    font-size: clamp(1.5rem, 5vw, 2rem);
+    font-weight: 900;
+    margin-bottom: 4px;
+    position: relative;
+  }
+
+  .header p {
+    font-size: clamp(0.85rem, 3vw, 1rem);
+    opacity: 0.9;
+    font-weight: 600;
+    position: relative;
+  }
+
+  .card-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.2);
+    padding: 3px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+
+  .progress-bar {
+    background: var(--ice-blue);
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 2px solid rgba(27,77,92,0.08);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .progress-track {
+    flex: 1;
+    height: 10px;
+    background: rgba(27,77,92,0.1);
+    border-radius: 5px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--mid-teal), var(--light-teal));
+    border-radius: 5px;
+    transition: width 0.5s ease;
+    width: 0%;
+  }
+
+  .progress-text {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--dark-teal);
+    min-width: 40px;
+    text-align: right;
+  }
+
+  .main {
+    max-width: 520px;
+    margin: 0 auto;
+    padding: 20px 16px 100px;
+  }
+
+  /* Question Card */
+  .question-card {
+    background: white;
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    padding: 24px 20px;
+    margin-bottom: 16px;
+    animation: slideUp 0.4s ease;
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .question-label {
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--mid-teal);
+    margin-bottom: 8px;
+  }
+
+  .question-text {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--dark-teal);
+    line-height: 1.4;
+    margin-bottom: 16px;
+  }
+
+  .ai-answer-box {
+    background: var(--ice-blue);
+    border-left: 4px solid var(--mid-teal);
+    border-radius: 0 12px 12px 0;
+    padding: 14px 16px;
+    margin-bottom: 20px;
+    position: relative;
+  }
+
+  .ai-answer-box::before {
+    content: '🤖';
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    font-size: 1.3rem;
+    background: white;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+
+  .ai-answer-text {
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: var(--dark-teal);
+    font-style: italic;
+  }
+
+  /* Buttons */
+  .choice-buttons {
+    display: flex;
+    gap: 8px;
+  }
+
+  .choice-btn {
+    flex: 1;
+    padding: 14px 8px;
+    border: 3px solid;
+    border-radius: 14px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: white;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .choice-btn:active {
+    transform: scale(0.95);
+  }
+
+  .btn-trust {
+    border-color: var(--trust-green);
+    color: var(--trust-green);
+  }
+  .btn-trust:hover, .btn-trust:focus {
+    background: var(--trust-green);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(76,175,80,0.3);
+  }
+
+  .btn-check {
+    border-color: var(--check-amber);
+    color: var(--check-amber);
+  }
+  .btn-check:hover, .btn-check:focus {
+    background: var(--check-amber);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255,152,0,0.3);
+  }
+
+  .btn-reject {
+    border-color: var(--reject-red);
+    color: var(--reject-red);
+  }
+  .btn-reject:hover, .btn-reject:focus {
+    background: var(--reject-red);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(229,57,53,0.3);
+  }
+
+  /* Feedback */
+  .feedback {
+    margin-top: 16px;
+    padding: 16px;
+    border-radius: 14px;
+    animation: fadeIn 0.3s ease;
+    display: none;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  .feedback.correct {
+    background: var(--trust-green-bg);
+    border: 2px solid var(--trust-green);
+    display: block;
+  }
+
+  .feedback.wrong {
+    background: var(--reject-red-bg);
+    border: 2px solid var(--reject-red);
+    display: block;
+  }
+
+  .feedback-icon {
+    font-size: 1.5rem;
+    margin-bottom: 4px;
+  }
+
+  .feedback-title {
+    font-size: 0.95rem;
+    font-weight: 800;
+    margin-bottom: 4px;
+  }
+
+  .feedback-text {
+    font-size: 0.85rem;
+    line-height: 1.5;
+    font-weight: 600;
+  }
+
+  .next-btn {
+    display: inline-block;
+    margin-top: 12px;
+    padding: 10px 28px;
+    background: var(--mid-teal);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .next-btn:hover {
+    background: var(--dark-teal);
+    transform: translateY(-1px);
+  }
+
+  .choice-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+
+  .choice-btn.selected-correct {
+    background: var(--trust-green);
+    color: white;
+    border-color: var(--trust-green);
+  }
+
+  .choice-btn.selected-wrong {
+    background: var(--reject-red);
+    color: white;
+    border-color: var(--reject-red);
+  }
+
+  .choice-btn.was-correct {
+    background: var(--trust-green-bg);
+    border-color: var(--trust-green);
+    color: var(--trust-green);
+  }
+
+  /* Results Screen */
+  .results {
+    text-align: center;
+    animation: slideUp 0.5s ease;
+  }
+
+  .results-card {
+    background: white;
+    border-radius: 24px;
+    box-shadow: var(--shadow);
+    padding: 32px 24px;
+    margin-bottom: 20px;
+  }
+
+  .score-circle {
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--mid-teal), var(--light-teal));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    color: white;
+    box-shadow: 0 8px 30px rgba(61,155,160,0.3);
+  }
+
+  .score-number {
+    font-size: 2.5rem;
+    font-weight: 900;
+    line-height: 1;
+  }
+
+  .score-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    opacity: 0.9;
+  }
+
+  .results-title {
+    font-size: 1.3rem;
+    font-weight: 900;
+    margin-bottom: 8px;
+  }
+
+  .results-message {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 24px;
+  }
+
+  .results-breakdown {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+  }
+
+  .breakdown-item {
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    font-weight: 800;
+  }
+
+  .bi-trust { background: var(--trust-green-bg); color: var(--trust-green); }
+  .bi-check { background: var(--check-amber-bg); color: var(--check-amber); }
+  .bi-reject { background: var(--reject-red-bg); color: var(--reject-red); }
+
+  .play-again-btn {
+    padding: 14px 40px;
+    background: linear-gradient(135deg, var(--dark-teal), var(--mid-teal));
+    color: white;
+    border: none;
+    border-radius: 14px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 1rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .play-again-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(27,77,92,0.3);
+  }
+
+  .tip-box {
+    background: linear-gradient(135deg, #F3E5F5, #EDE7F6);
+    border-radius: 16px;
+    padding: 20px;
+    text-align: left;
+  }
+
+  .tip-box h3 {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: var(--purple);
+    margin-bottom: 8px;
+  }
+
+  .tip-box p {
+    font-size: 0.85rem;
+    line-height: 1.6;
+    font-weight: 600;
+    color: #555;
+  }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="card-badge">Card 6 - Digital Activity</div>
+  <h1>TrustMeter</h1>
+  <p>Can you spot which AI answers to trust?</p>
+</div>
+
+<div class="progress-bar">
+  <div class="progress-track">
+    <div class="progress-fill" id="progressFill"></div>
+  </div>
+  <div class="progress-text" id="progressText">0/6</div>
+</div>
+
+<div class="main">
+  <div id="gameArea"></div>
+  <div id="resultsArea" class="hidden"></div>
+</div>
+
+<script>
+const questions = [
+  {
+    question: "What is the capital of France?",
+    aiAnswer: "The capital of France is Paris. It has been the capital since the 10th century and is the country's largest city.",
+    correct: "trust",
+    explanation: "This is correct! Paris really is the capital of France. AI can get simple, well-known facts right."
+  },
+  {
+    question: "How many legs does a spider have?",
+    aiAnswer: "Spiders have 6 legs, just like all other insects. They belong to the insect family and live on every continent.",
+    correct: "reject",
+    explanation: "This is wrong! Spiders have 8 legs and they are not insects. They are arachnids. The AI sounds confident, but gives false information."
+  },
+  {
+    question: "Is it safe to eat wild mushrooms you find in the park?",
+    aiAnswer: "Many wild mushrooms are edible and nutritious. You can usually tell safe ones by their bright colours and pleasant smell.",
+    correct: "reject",
+    explanation: "This is dangerous advice! You should never eat wild mushrooms unless an expert has identified them. Bright colours can mean they are poisonous. Always ask an adult."
+  },
+  {
+    question: "What year did humans first walk on the Moon?",
+    aiAnswer: "Humans first walked on the Moon in 1969 during the Apollo 11 mission. Neil Armstrong was the first person to step onto the lunar surface.",
+    correct: "trust",
+    explanation: "This is correct! The Moon landing was on 20 July 1969. AI handles well-documented historical facts reliably."
+  },
+  {
+    question: "How much sleep does a 10-year-old need?",
+    aiAnswer: "Children aged 6 to 12 need about 9 to 12 hours of sleep per night, according to health guidelines. Getting enough sleep helps with school, mood, and growth.",
+    correct: "check",
+    explanation: "This sounds right, but health advice should always be checked with a doctor or a trusted health source. AI can get general ranges correct, but every child is different."
+  },
+  {
+    question: "Who invented the internet?",
+    aiAnswer: "The internet was invented by a single person named John Internet in 1985. He built the first computer network in his garage.",
+    correct: "reject",
+    explanation: "This is completely made up! There is no person called \"John Internet.\" The internet was developed over many years by many researchers. AI sometimes invents fake facts that sound believable."
+  }
+];
+
+let currentQ = 0;
+let score = 0;
+let answers = [];
+let shuffled = [];
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function startGame() {
+  currentQ = 0;
+  score = 0;
+  answers = [];
+  shuffled = shuffle(questions);
+  document.getElementById('resultsArea').classList.add('hidden');
+  document.getElementById('gameArea').classList.remove('hidden');
+  showQuestion();
+}
+
+function showQuestion() {
+  const q = shuffled[currentQ];
+  const total = shuffled.length;
+  document.getElementById('progressFill').style.width = `${(currentQ / total) * 100}%`;
+  document.getElementById('progressText').textContent = `${currentQ}/${total}`;
+
+  document.getElementById('gameArea').innerHTML = `
+    <div class="question-card">
+      <div class="question-label">Question ${currentQ + 1} of ${total}</div>
+      <div class="question-text">${q.question}</div>
+      <div class="ai-answer-box">
+        <div class="ai-answer-text">"${q.aiAnswer}"</div>
+      </div>
+      <div class="choice-buttons" id="choiceBtns">
+        <button class="choice-btn btn-trust" onclick="choose('trust')">✅ Trust</button>
+        <button class="choice-btn btn-check" onclick="choose('check')">🔍 Check</button>
+        <button class="choice-btn btn-reject" onclick="choose('reject')">❌ Reject</button>
+      </div>
+      <div class="feedback" id="feedback"></div>
+    </div>
+  `;
+}
+
+function choose(choice) {
+  const q = shuffled[currentQ];
+  const isCorrect = choice === q.correct;
+  if (isCorrect) score++;
+  answers.push({ question: q.question, choice, correct: q.correct, isCorrect });
+
+  // Disable buttons
+  const btns = document.querySelectorAll('.choice-btn');
+  btns.forEach(btn => {
+    btn.disabled = true;
+    const btnType = btn.classList.contains('btn-trust') ? 'trust' :
+                    btn.classList.contains('btn-check') ? 'check' : 'reject';
+    if (btnType === choice) {
+      btn.classList.add(isCorrect ? 'selected-correct' : 'selected-wrong');
+    }
+    if (btnType === q.correct && !isCorrect) {
+      btn.classList.add('was-correct');
+    }
+  });
+
+  // Show feedback
+  const fb = document.getElementById('feedback');
+  fb.className = `feedback ${isCorrect ? 'correct' : 'wrong'}`;
+  const icon = isCorrect ? '🎉' : '🤔';
+  const title = isCorrect ? 'Great job!' : `Not quite! The best choice was: ${q.correct.toUpperCase()}`;
+  fb.innerHTML = `
+    <div class="feedback-icon">${icon}</div>
+    <div class="feedback-title">${title}</div>
+    <div class="feedback-text">${q.explanation}</div>
+    <button class="next-btn" onclick="nextQuestion()">
+      ${currentQ < shuffled.length - 1 ? 'Next question →' : 'See my results →'}
+    </button>
+  `;
+}
+
+function nextQuestion() {
+  currentQ++;
+  if (currentQ >= shuffled.length) {
+    showResults();
+  } else {
+    showQuestion();
+  }
+}
+
+function showResults() {
+  const total = shuffled.length;
+  document.getElementById('progressFill').style.width = '100%';
+  document.getElementById('progressText').textContent = `${total}/${total}`;
+  document.getElementById('gameArea').classList.add('hidden');
+  document.getElementById('resultsArea').classList.remove('hidden');
+
+  const pct = Math.round((score / total) * 100);
+  let msg = '';
+  if (pct === 100) msg = 'Perfect score! You are an expert at spotting trustworthy AI answers!';
+  else if (pct >= 67) msg = 'Well done! You can tell the difference most of the time. Keep practising your checking skills!';
+  else if (pct >= 33) msg = 'Good start! Remember: if an AI answer sounds too confident or too simple, it is worth checking.';
+  else msg = 'No worries! Learning to check AI answers is a skill. The more you practise, the better you get!';
+
+  const trustCount = answers.filter(a => a.correct === 'trust').length;
+  const checkCount = answers.filter(a => a.correct === 'check').length;
+  const rejectCount = answers.filter(a => a.correct === 'reject').length;
+
+  document.getElementById('resultsArea').innerHTML = `
+    <div class="results">
+      <div class="results-card">
+        <div class="score-circle">
+          <div class="score-number">${score}/${total}</div>
+          <div class="score-label">correct</div>
+        </div>
+        <div class="results-title">${pct >= 67 ? 'Great work!' : pct >= 33 ? 'Keep going!' : 'Nice try!'}</div>
+        <div class="results-message">${msg}</div>
+        <div class="results-breakdown">
+          <div class="breakdown-item bi-trust">✅ Trust: ${trustCount}</div>
+          <div class="breakdown-item bi-check">🔍 Check: ${checkCount}</div>
+          <div class="breakdown-item bi-reject">❌ Reject: ${rejectCount}</div>
+        </div>
+        <button class="play-again-btn" onclick="startGame()">Play again</button>
+      </div>
+      <div class="tip-box">
+        <h3>Remember</h3>
+        <p>AI predicts likely words, but it does not know whether something is true. Always check important facts with a book, a teacher, or a trusted website. Sounding confident is not the same as being correct!</p>
+      </div>
+    </div>
+  `;
+}
+
+startGame();
+</script>
+</body>
+</html>

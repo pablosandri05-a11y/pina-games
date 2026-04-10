@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Responsibility Chain - Who Is Responsible?</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --navy: #173C4B;
+    --teal: #2D8A8E;
+    --light-teal: #45B5AA;
+    --peach: #F5C5A3;
+    --peach-light: #FFF0E5;
+    --ice: #EDF5F4;
+    --cream: #F7FAF9;
+    --user-blue: #2196F3;
+    --adult-orange: #FF9800;
+    --maker-purple: #7E57C2;
+    --shared-teal: #26A69A;
+    --user-bg: #E3F2FD;
+    --adult-bg: #FFF3E0;
+    --maker-bg: #F3E5F5;
+    --shared-bg: #E0F2F1;
+    --shadow: 0 4px 20px rgba(23, 60, 75, 0.12);
+  }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--cream);
+    color: var(--navy);
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  .header {
+    background: linear-gradient(135deg, var(--navy), var(--teal));
+    color: white;
+    padding: 28px 20px 24px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -30px; right: -30px;
+    width: 110px; height: 110px;
+    background: rgba(245,197,163,0.12);
+    border-radius: 50%;
+  }
+
+  .header::after {
+    content: '';
+    position: absolute;
+    bottom: -20px; left: 30px;
+    width: 70px; height: 70px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 50%;
+  }
+
+  .card-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.2);
+    padding: 3px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+
+  .header h1 {
+    font-size: clamp(1.4rem, 5vw, 1.9rem);
+    font-weight: 900;
+    position: relative;
+  }
+
+  .header p {
+    font-size: clamp(0.85rem, 3vw, 1rem);
+    opacity: 0.9;
+    font-weight: 600;
+    position: relative;
+  }
+
+  .progress-bar {
+    background: var(--ice);
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 2px solid rgba(23,60,75,0.06);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .progress-track {
+    flex: 1;
+    height: 10px;
+    background: rgba(23,60,75,0.08);
+    border-radius: 5px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--teal), var(--light-teal));
+    border-radius: 5px;
+    transition: width 0.5s ease;
+    width: 0%;
+  }
+
+  .progress-text {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--navy);
+    min-width: 40px;
+    text-align: right;
+  }
+
+  .main {
+    max-width: 520px;
+    margin: 0 auto;
+    padding: 20px 16px 100px;
+  }
+
+  /* Scenario Card */
+  .scenario-card {
+    background: white;
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    padding: 24px 20px;
+    margin-bottom: 16px;
+    animation: slideUp 0.4s ease;
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .scenario-label {
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-bottom: 8px;
+  }
+
+  .scenario-box {
+    background: var(--peach-light);
+    border-left: 4px solid var(--peach);
+    border-radius: 0 14px 14px 0;
+    padding: 16px;
+    margin-bottom: 20px;
+    position: relative;
+  }
+
+  .scenario-icon {
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    font-size: 1.3rem;
+    background: white;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+
+  .scenario-text {
+    font-size: 0.95rem;
+    line-height: 1.5;
+    font-weight: 700;
+    color: var(--navy);
+  }
+
+  .prompt-text {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--teal);
+    margin-bottom: 14px;
+    text-align: center;
+  }
+
+  /* Chain Steps */
+  .chain-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-bottom: 12px;
+  }
+
+  .chain-step {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 4px;
+  }
+
+  .chain-number {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--ice);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 900;
+    color: var(--teal);
+    flex-shrink: 0;
+  }
+
+  .chain-line {
+    width: 32px;
+    display: flex;
+    justify-content: center;
+    flex-shrink: 0;
+    padding: 0 4px;
+  }
+
+  .chain-line-inner {
+    width: 3px;
+    height: 20px;
+    background: linear-gradient(to bottom, var(--teal), rgba(45,138,142,0.3));
+    border-radius: 2px;
+  }
+
+  .chain-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #888;
+    flex: 1;
+  }
+
+  .drop-zone {
+    flex: 1;
+    min-height: 44px;
+    border: 2px dashed rgba(45,138,142,0.3);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    padding: 8px;
+  }
+
+  .drop-zone.drag-over {
+    border-color: var(--teal);
+    background: rgba(45,138,142,0.06);
+    transform: scale(1.02);
+  }
+
+  .drop-zone.filled {
+    border-style: solid;
+    border-color: transparent;
+  }
+
+  .drop-zone-placeholder {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #aaa;
+  }
+
+  /* Role Tags (draggable) */
+  .roles-area {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 16px;
+    min-height: 48px;
+    padding: 8px;
+    background: var(--ice);
+    border-radius: 14px;
+  }
+
+  .role-tag {
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    cursor: grab;
+    transition: all 0.2s ease;
+    border: 2px solid;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    touch-action: none;
+  }
+
+  .role-tag:active { cursor: grabbing; }
+
+  .role-tag.dragging {
+    opacity: 0.5;
+    transform: scale(0.9);
+  }
+
+  .role-user { background: var(--user-bg); border-color: var(--user-blue); color: var(--user-blue); }
+  .role-adult { background: var(--adult-bg); border-color: var(--adult-orange); color: var(--adult-orange); }
+  .role-maker { background: var(--maker-bg); border-color: var(--maker-purple); color: var(--maker-purple); }
+  .role-shared { background: var(--shared-bg); border-color: var(--shared-teal); color: var(--shared-teal); }
+
+  .role-tag:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+
+  .check-btn {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, var(--navy), var(--teal));
+    color: white;
+    border: none;
+    border-radius: 14px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 8px;
+  }
+
+  .check-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(23,60,75,0.2);
+  }
+
+  .check-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Feedback */
+  .feedback {
+    margin-top: 16px;
+    padding: 16px;
+    border-radius: 14px;
+    animation: fadeIn 0.3s ease;
+    display: none;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  .feedback.show { display: block; }
+  .feedback.correct { background: #E8F5E9; border: 2px solid #4CAF50; }
+  .feedback.partial { background: #FFF3E0; border: 2px solid #FF9800; }
+  .feedback.wrong { background: #FFEBEE; border: 2px solid #E53935; }
+
+  .feedback-icon { font-size: 1.5rem; margin-bottom: 4px; }
+  .feedback-title { font-size: 0.95rem; font-weight: 800; margin-bottom: 4px; }
+  .feedback-text { font-size: 0.85rem; line-height: 1.5; font-weight: 600; }
+
+  .next-btn {
+    display: inline-block;
+    margin-top: 12px;
+    padding: 10px 28px;
+    background: var(--teal);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .next-btn:hover { background: var(--navy); transform: translateY(-1px); }
+
+  /* Results */
+  .results { text-align: center; animation: slideUp 0.5s ease; }
+
+  .results-card {
+    background: white;
+    border-radius: 24px;
+    box-shadow: var(--shadow);
+    padding: 32px 24px;
+    margin-bottom: 20px;
+  }
+
+  .score-circle {
+    width: 130px; height: 130px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--teal), var(--light-teal));
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    margin: 0 auto 20px;
+    color: white;
+    box-shadow: 0 8px 30px rgba(45,138,142,0.3);
+  }
+
+  .score-number { font-size: 2.5rem; font-weight: 900; line-height: 1; }
+  .score-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; opacity: 0.9; }
+  .results-title { font-size: 1.3rem; font-weight: 900; margin-bottom: 8px; }
+  .results-message { font-size: 0.95rem; line-height: 1.6; font-weight: 600; color: #555; margin-bottom: 24px; }
+
+  .play-again-btn {
+    padding: 14px 40px;
+    background: linear-gradient(135deg, var(--navy), var(--teal));
+    color: white; border: none; border-radius: 14px;
+    font-family: 'Nunito', sans-serif; font-size: 1rem; font-weight: 800;
+    cursor: pointer; transition: all 0.2s ease;
+  }
+
+  .play-again-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(23,60,75,0.3); }
+
+  .tip-box {
+    background: linear-gradient(135deg, var(--peach-light), #FFF8F2);
+    border-radius: 16px; padding: 20px; text-align: left;
+  }
+
+  .tip-box h3 { font-size: 0.95rem; font-weight: 800; color: #E65100; margin-bottom: 8px; }
+  .tip-box p { font-size: 0.85rem; line-height: 1.6; font-weight: 600; color: #555; }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="card-badge">Card 7 - Digital Activity</div>
+  <h1>Responsibility Chain</h1>
+  <p>When AI makes a mistake, who should fix it?</p>
+</div>
+
+<div class="progress-bar">
+  <div class="progress-track">
+    <div class="progress-fill" id="progressFill"></div>
+  </div>
+  <div class="progress-text" id="progressText">0/5</div>
+</div>
+
+<div class="main">
+  <div id="gameArea"></div>
+  <div id="resultsArea" class="hidden"></div>
+</div>
+
+<script>
+const scenarios = [
+  {
+    icon: "📅",
+    scenario: "A student uses an AI tool to make a poster for the school fair. The AI puts the wrong date on the poster. Families arrive on the wrong day.",
+    steps: [
+      { label: "Who chose to use the AI tool?", correct: "user" },
+      { label: "Who should have checked the poster?", correct: "adult" },
+      { label: "Who should fix the poster now?", correct: "user" },
+      { label: "Who should improve the tool?", correct: "maker" }
+    ],
+    explanation: "The student chose to use the tool, but an adult should have checked it before printing. The student can fix the poster, and the company that made the tool should improve it."
+  },
+  {
+    icon: "💊",
+    scenario: "An AI chatbot gives health advice to a child, telling them they can take adult medicine if they feel ill. The child tells a friend.",
+    steps: [
+      { label: "Who should have supervised?", correct: "adult" },
+      { label: "Who built the unsafe feature?", correct: "maker" },
+      { label: "Who should check health information?", correct: "shared" },
+      { label: "Who must fix this immediately?", correct: "adult" }
+    ],
+    explanation: "Health advice for children is an adult responsibility. The AI maker should have prevented medical advice to children. Everyone shares the duty to check health facts with a doctor."
+  },
+  {
+    icon: "📝",
+    scenario: "A teacher uses an AI marking tool to grade homework. The tool gives one student a low mark unfairly because her name is unusual.",
+    steps: [
+      { label: "Who chose this tool?", correct: "adult" },
+      { label: "Who built the biased system?", correct: "maker" },
+      { label: "Who should review the marks?", correct: "adult" },
+      { label: "Who should report the problem?", correct: "shared" }
+    ],
+    explanation: "The teacher chose the tool and must review AI marks before using them. The makers are responsible for bias in their system. Everyone should speak up when something is unfair."
+  },
+  {
+    icon: "🖼️",
+    scenario: "A student asks AI to create an image for a school project. The AI generates a picture that copies another artist's work without permission.",
+    steps: [
+      { label: "Who asked for the image?", correct: "user" },
+      { label: "Who built the copying system?", correct: "maker" },
+      { label: "Who should check originality?", correct: "shared" },
+      { label: "Who should guide correct use?", correct: "adult" }
+    ],
+    explanation: "The student asked for the image, but the maker built a system that copies without permission. Both the student and teacher should check that work is original. The adult should teach responsible use."
+  },
+  {
+    icon: "🗣️",
+    scenario: "An AI translation tool is used to write a letter to a pen pal in another country. The translation contains rude words that the student did not intend.",
+    steps: [
+      { label: "Who used the tool?", correct: "user" },
+      { label: "Who should check before sending?", correct: "shared" },
+      { label: "Who made the bad translation?", correct: "maker" },
+      { label: "Who should apologise and explain?", correct: "user" }
+    ],
+    explanation: "The student used the tool and should apologise, explaining it was a mistake. Both the student and adult should have checked the translation. The makers need to fix translation errors."
+  }
+];
+
+let currentS = 0;
+let score = 0;
+let totalSteps = 0;
+let correctSteps = 0;
+let shuffled = [];
+let currentPlacements = {};
+let draggedRole = null;
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function startGame() {
+  currentS = 0; score = 0; totalSteps = 0; correctSteps = 0;
+  shuffled = shuffle(scenarios);
+  document.getElementById('resultsArea').classList.add('hidden');
+  document.getElementById('gameArea').classList.remove('hidden');
+  showScenario();
+}
+
+function getRoleHTML(type) {
+  const labels = { user: '👤 User', adult: '👨‍🏫 Adult', maker: '🔧 Maker', shared: '🤝 Shared' };
+  const classes = { user: 'role-user', adult: 'role-adult', maker: 'role-maker', shared: 'role-shared' };
+  return `<span class="role-tag ${classes[type]}" data-role="${type}" 
+    draggable="true" 
+    ontouchstart="touchStart(event)" 
+    ontouchmove="touchMove(event)" 
+    ontouchend="touchEnd(event)"
+    ondragstart="dragStart(event)">${labels[type]}</span>`;
+}
+
+function showScenario() {
+  const s = shuffled[currentS];
+  const total = shuffled.length;
+  currentPlacements = {};
+  document.getElementById('progressFill').style.width = `${(currentS / total) * 100}%`;
+  document.getElementById('progressText').textContent = `${currentS}/${total}`;
+
+  let chainHTML = '';
+  s.steps.forEach((step, i) => {
+    if (i > 0) {
+      chainHTML += `<div class="chain-step"><div class="chain-line"><div class="chain-line-inner"></div></div><div></div></div>`;
+    }
+    chainHTML += `
+      <div class="chain-step">
+        <div class="chain-number">${i + 1}</div>
+        <div style="flex:1">
+          <div class="chain-label">${step.label}</div>
+          <div class="drop-zone" id="drop-${i}" 
+            ondragover="dragOver(event)" 
+            ondragleave="dragLeave(event)" 
+            ondrop="drop(event, ${i})">
+            <span class="drop-zone-placeholder">drop here</span>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+
+  document.getElementById('gameArea').innerHTML = `
+    <div class="scenario-card">
+      <div class="scenario-label">Scenario ${currentS + 1} of ${total}</div>
+      <div class="scenario-box">
+        <div class="scenario-icon">${s.icon}</div>
+        <div class="scenario-text">${s.scenario}</div>
+      </div>
+      <div class="prompt-text">Drag a role to each step of the chain:</div>
+      <div class="roles-area" id="rolesArea">
+        ${getRoleHTML('user')}
+        ${getRoleHTML('adult')}
+        ${getRoleHTML('maker')}
+        ${getRoleHTML('shared')}
+      </div>
+      <div class="chain-container">${chainHTML}</div>
+      <button class="check-btn" id="checkBtn" onclick="checkAnswers()" disabled>Check my chain</button>
+      <div class="feedback" id="feedback"></div>
+    </div>
+  `;
+}
+
+// Drag & drop (desktop)
+function dragStart(e) {
+  draggedRole = e.target.dataset.role;
+  e.target.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+}
+
+function dragOver(e) {
+  e.preventDefault();
+  e.currentTarget.classList.add('drag-over');
+}
+
+function dragLeave(e) {
+  e.currentTarget.classList.remove('drag-over');
+}
+
+function drop(e, stepIndex) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  if (!draggedRole) return;
+  placeRole(stepIndex, draggedRole);
+  document.querySelectorAll('.dragging').forEach(el => el.classList.remove('dragging'));
+  draggedRole = null;
+}
+
+// Touch support
+let touchTarget = null;
+let touchClone = null;
+
+function touchStart(e) {
+  const tag = e.target.closest('.role-tag');
+  if (!tag) return;
+  draggedRole = tag.dataset.role;
+  touchTarget = tag;
+  tag.classList.add('dragging');
+
+  touchClone = tag.cloneNode(true);
+  touchClone.style.position = 'fixed';
+  touchClone.style.zIndex = '1000';
+  touchClone.style.pointerEvents = 'none';
+  touchClone.style.opacity = '0.85';
+  touchClone.style.transform = 'scale(1.1)';
+  document.body.appendChild(touchClone);
+
+  const touch = e.touches[0];
+  touchClone.style.left = (touch.clientX - 40) + 'px';
+  touchClone.style.top = (touch.clientY - 20) + 'px';
+}
+
+function touchMove(e) {
+  if (!touchClone) return;
+  e.preventDefault();
+  const touch = e.touches[0];
+  touchClone.style.left = (touch.clientX - 40) + 'px';
+  touchClone.style.top = (touch.clientY - 20) + 'px';
+
+  document.querySelectorAll('.drop-zone').forEach(dz => dz.classList.remove('drag-over'));
+  const el = document.elementFromPoint(touch.clientX, touch.clientY);
+  const dz = el ? el.closest('.drop-zone') : null;
+  if (dz) dz.classList.add('drag-over');
+}
+
+function touchEnd(e) {
+  if (!touchClone) return;
+  const touch = e.changedTouches[0];
+  const el = document.elementFromPoint(touch.clientX, touch.clientY);
+  const dz = el ? el.closest('.drop-zone') : null;
+
+  if (dz && draggedRole) {
+    const idx = parseInt(dz.id.replace('drop-', ''));
+    placeRole(idx, draggedRole);
+  }
+
+  document.querySelectorAll('.drop-zone').forEach(d => d.classList.remove('drag-over'));
+  if (touchTarget) touchTarget.classList.remove('dragging');
+  if (touchClone) touchClone.remove();
+  touchClone = null;
+  touchTarget = null;
+  draggedRole = null;
+}
+
+function placeRole(stepIndex, role) {
+  currentPlacements[stepIndex] = role;
+  const dz = document.getElementById(`drop-${stepIndex}`);
+  dz.innerHTML = getRoleHTML(role);
+  dz.classList.add('filled');
+
+  // Re-setup drag on placed tags
+  const newTag = dz.querySelector('.role-tag');
+  newTag.addEventListener('click', () => {
+    delete currentPlacements[stepIndex];
+    dz.innerHTML = '<span class="drop-zone-placeholder">drop here</span>';
+    dz.classList.remove('filled');
+    updateCheckBtn();
+  });
+
+  updateCheckBtn();
+}
+
+function updateCheckBtn() {
+  const s = shuffled[currentS];
+  const filled = Object.keys(currentPlacements).length;
+  document.getElementById('checkBtn').disabled = filled < s.steps.length;
+}
+
+function checkAnswers() {
+  const s = shuffled[currentS];
+  let correct = 0;
+
+  s.steps.forEach((step, i) => {
+    const dz = document.getElementById(`drop-${i}`);
+    const placed = currentPlacements[i];
+    totalSteps++;
+    if (placed === step.correct) {
+      correct++;
+      correctSteps++;
+      dz.style.borderColor = '#4CAF50';
+      dz.style.background = '#E8F5E9';
+    } else {
+      dz.style.borderColor = '#E53935';
+      dz.style.background = '#FFEBEE';
+    }
+  });
+
+  if (correct === s.steps.length) score++;
+
+  const fb = document.getElementById('feedback');
+  const pct = correct / s.steps.length;
+  let cls, icon, title;
+  if (pct === 1) { cls = 'correct'; icon = '🎉'; title = 'Perfect chain!'; }
+  else if (pct >= 0.5) { cls = 'partial'; icon = '👍'; title = `${correct} out of ${s.steps.length} correct!`; }
+  else { cls = 'wrong'; icon = '🤔'; title = `${correct} out of ${s.steps.length} correct`; }
+
+  fb.className = `feedback show ${cls}`;
+  fb.innerHTML = `
+    <div class="feedback-icon">${icon}</div>
+    <div class="feedback-title">${title}</div>
+    <div class="feedback-text">${s.explanation}</div>
+    <button class="next-btn" onclick="nextScenario()">
+      ${currentS < shuffled.length - 1 ? 'Next scenario →' : 'See my results →'}
+    </button>
+  `;
+
+  document.getElementById('checkBtn').style.display = 'none';
+  document.getElementById('rolesArea').style.display = 'none';
+
+  // Disable further interaction
+  document.querySelectorAll('.drop-zone .role-tag').forEach(t => {
+    t.draggable = false;
+    t.style.cursor = 'default';
+    t.onclick = null;
+  });
+}
+
+function nextScenario() {
+  currentS++;
+  if (currentS >= shuffled.length) {
+    showResults();
+  } else {
+    showScenario();
+  }
+}
+
+function showResults() {
+  const total = shuffled.length;
+  document.getElementById('progressFill').style.width = '100%';
+  document.getElementById('progressText').textContent = `${total}/${total}`;
+  document.getElementById('gameArea').classList.add('hidden');
+  document.getElementById('resultsArea').classList.remove('hidden');
+
+  const pct = Math.round((correctSteps / totalSteps) * 100);
+  let msg;
+  if (pct >= 90) msg = 'Amazing! You clearly understand how responsibility is shared when AI is involved.';
+  else if (pct >= 60) msg = 'Good work! You understand that different people have different roles when AI makes a mistake.';
+  else msg = 'Keep thinking about it! Responsibility is often shared between users, adults, and makers.';
+
+  document.getElementById('resultsArea').innerHTML = `
+    <div class="results">
+      <div class="results-card">
+        <div class="score-circle">
+          <div class="score-number">${correctSteps}/${totalSteps}</div>
+          <div class="score-label">steps correct</div>
+        </div>
+        <div class="results-title">${pct >= 60 ? 'Well done!' : 'Nice effort!'}</div>
+        <div class="results-message">${msg}</div>
+        <button class="play-again-btn" onclick="startGame()">Play again</button>
+      </div>
+      <div class="tip-box">
+        <h3>Remember</h3>
+        <p>AI can generate outputs, but people remain responsible for designing, using, checking, and correcting those outputs. When something goes wrong, responsibility is usually shared: the person who chose the tool, the adult who supervised, and the company that built it all play a part.</p>
+      </div>
+    </div>
+  `;
+}
+
+startGame();
+</script>
+</body>
+</html>

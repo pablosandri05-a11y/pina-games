@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Study Smart Simulator – Card 17</title>
+<style>
+  :root{--bg:#FFF8EE;--orange:#E8722A;--green:#2D6A4F;--amber:#F4C542;--dark:#1A1A2E;--slate:#5C5C7A;--light-o:#FDE8D0;--light-g:#EBF5EE;--white:#fff}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--dark);font-family:'Segoe UI',Arial,sans-serif;min-height:100vh;padding:16px}
+  h1{color:var(--orange);font-size:1.4rem;margin-bottom:4px}
+  .badge{background:var(--light-o);color:var(--orange);font-family:monospace;font-size:.75rem;padding:3px 10px;border-radius:20px;display:inline-block;margin-bottom:12px}
+  .card{background:var(--white);border-radius:12px;padding:18px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,.07)}
+  .label{font-family:monospace;font-size:.75rem;color:var(--orange);font-weight:700;margin-bottom:8px;text-transform:uppercase}
+  .progress-track{display:flex;gap:4px;margin-bottom:14px}
+  .progress-seg{flex:1;height:6px;border-radius:3px;background:#ddd;transition:.3s}
+  .progress-seg.done{background:var(--green)}
+  .progress-seg.current{background:var(--orange)}
+  .step-box{border-radius:10px;padding:16px;border-left:4px solid var(--amber);background:var(--bg);margin-bottom:12px}
+  .step-num{font-family:monospace;font-size:.72rem;color:var(--orange);margin-bottom:4px}
+  .step-task{font-weight:700;font-size:.95rem;margin-bottom:6px}
+  .step-desc{font-size:.85rem;color:var(--slate);line-height:1.5;margin-bottom:12px}
+  .choice-grid{display:grid;grid-template-columns:1fr;gap:8px}
+  .choice-card{border:2px solid #ddd;border-radius:10px;padding:12px;cursor:pointer;background:var(--white);transition:.2s}
+  .choice-card:hover{border-color:var(--amber)}
+  .choice-card.self{border-color:var(--green)}
+  .choice-card.self:hover,.choice-card.self.chosen{background:var(--light-g);border-color:var(--green)}
+  .choice-card.help{border-color:var(--amber)}
+  .choice-card.help:hover,.choice-card.help.chosen{background:#fffbe8;border-color:var(--amber)}
+  .choice-card.ai{border-color:var(--orange)}
+  .choice-card.ai:hover,.choice-card.ai.chosen{background:var(--light-o);border-color:var(--orange)}
+  .choice-title{font-weight:700;font-size:.88rem;margin-bottom:3px}
+  .choice-desc{font-size:.8rem;color:var(--slate)}
+  .feedback-pop{border-radius:8px;padding:12px;margin-top:8px;font-size:.85rem;line-height:1.5;display:none}
+  .feedback-pop.show{display:block}
+  .feedback-pop.self{background:var(--light-g);border-left:4px solid var(--green)}
+  .feedback-pop.help{background:#fffbe8;border-left:4px solid var(--amber)}
+  .feedback-pop.ai{background:var(--light-o);border-left:4px solid var(--orange)}
+  .btn{background:var(--orange);color:#fff;border:none;border-radius:8px;padding:12px 22px;font-size:.9rem;cursor:pointer;font-weight:700;width:100%;transition:.2s;margin-top:10px}
+  .btn:hover{background:#c85e1a}
+  .btn.green{background:var(--green)}
+  .quiz-q{background:var(--bg);border-radius:8px;padding:14px;margin-bottom:10px;border-left:4px solid var(--amber)}
+  .quiz-q .q-text{font-weight:700;font-size:.9rem;margin-bottom:8px}
+  .q-opts button{display:block;width:100%;text-align:left;border:2px solid #ddd;border-radius:6px;padding:8px 12px;margin-bottom:6px;cursor:pointer;background:var(--white);font-size:.85rem;transition:.2s}
+  .q-opts button:hover{border-color:var(--orange)}
+  .q-opts button.correct{border-color:var(--green);background:var(--light-g);color:var(--green)}
+  .q-opts button.wrong{border-color:#e55;background:#fff0f0;color:#900}
+  .score-panel{display:none;text-align:center;padding:20px}
+  .score-panel.show{display:block}
+  .score-big{font-size:2.8rem;font-weight:900;color:var(--orange)}
+  .learning-meter{height:14px;border-radius:7px;background:#e8e0d4;overflow:hidden;margin:8px 0}
+  .learning-fill{height:14px;border-radius:7px;transition:width 1s ease}
+  .phase{display:none}
+  .phase.active{display:block}
+</style>
+</head>
+<body>
+<div class="badge">LEVEL 2 · CARD 17</div>
+<h1>Study Smart Simulator</h1>
+<p style="color:var(--slate);font-size:.88rem;margin-bottom:14px">You're studying the water cycle. At each step, choose how to approach it. Then take a quiz — and see how your choices affected what you actually learned.</p>
+
+<div class="phase active" id="phase-study">
+  <div class="progress-track" id="prog-track">
+    <div class="progress-seg current"></div>
+    <div class="progress-seg"></div>
+    <div class="progress-seg"></div>
+    <div class="progress-seg"></div>
+    <div class="progress-seg"></div>
+  </div>
+
+  <div id="step-area"></div>
+</div>
+
+<div class="phase" id="phase-quiz">
+  <div class="card">
+    <div class="label">Quick Quiz — What did you actually learn?</div>
+    <p style="font-size:.85rem;color:var(--slate);margin-bottom:12px">Answer these without looking anything up. Your results will show how your study choices affected your understanding.</p>
+    <div id="quiz-area"></div>
+    <button class="btn" id="quiz-submit" onclick="submitQuiz()" style="display:none">See My Results</button>
+  </div>
+</div>
+
+<div class="score-panel" id="score-panel">
+  <div class="score-big" id="score-big"></div>
+  <div style="color:var(--orange);font-size:.95rem">quiz questions correct</div>
+  <div style="margin:14px 0">
+    <div style="display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:4px"><span>Your learning depth:</span><span id="learn-pct" style="font-family:monospace"></span></div>
+    <div class="learning-meter"><div class="learning-fill" id="learn-fill"></div></div>
+  </div>
+  <div class="card" style="text-align:left;margin-top:4px">
+    <div class="label">What your choices revealed</div>
+    <div id="choice-analysis" style="font-size:.88rem;line-height:1.5"></div>
+  </div>
+  <div class="card" style="text-align:left">
+    <div style="background:var(--amber);border-radius:8px;padding:10px;font-size:.85rem;font-family:monospace;color:var(--dark)">
+      KEY INSIGHT: The question isn't "did I use AI?" — it's "did using AI require me to think?"
+    </div>
+  </div>
+  <button class="btn" onclick="restart()" style="margin-top:8px">Try Different Choices</button>
+</div>
+
+<script>
+const steps = [
+  {num:1, task:'Get an overview of the water cycle',
+   desc:'You need to understand the basic stages of the water cycle before your class test.',
+   choices:[
+     {type:'self', label:'Do It Yourself', title:'Read your textbook chapter',
+      desc:'Read the chapter on the water cycle and take notes in your own words.',
+      fb:'Reading and note-taking builds your own mental model. Slower, but you\'ll remember more.',
+      learning:9},
+     {type:'help', label:'AI to Help', title:'Ask AI to explain it simply',
+      desc:'Ask AI: "Explain the water cycle to me like I\'m 12, then quiz me on it."',
+      fb:'Using AI to explain and then self-testing is a smart study pattern — it still requires active thinking.',
+      learning:7},
+     {type:'ai', label:'Let AI Do It', title:'Copy AI\'s summary into your notes',
+      desc:'Ask AI for a complete summary and paste it into your notes without reading it carefully.',
+      fb:'You have the notes, but you haven\'t processed the information. You skipped the learning step.',
+      learning:2},
+   ]},
+  {num:2, task:'Understand why evaporation happens',
+   desc:'You\'re confused about why water turns to vapour. You need to actually understand it.',
+   choices:[
+     {type:'self', label:'Do It Yourself', title:'Figure it out from the diagram',
+      desc:'Spend 5 minutes studying the diagram in the textbook and work out the explanation yourself.',
+      fb:'Struggling with a concept and working it out builds deep understanding. This is how real learning works.',
+      learning:10},
+     {type:'help', label:'AI to Help', title:'Ask AI to explain in a new way',
+      desc:'Ask AI to explain evaporation using a different analogy, then explain it back to AI in your own words.',
+      fb:'Asking AI to clarify and then explaining it yourself is active learning. Well done.',
+      learning:8},
+     {type:'ai', label:'Let AI Do It', title:'Ask AI for the exact answer for the test',
+      desc:'Ask AI "what is the answer if the test asks about evaporation?"',
+      fb:'Memorising an AI answer without understanding it might get you through one question — but you\'ve learned the word, not the concept.',
+      learning:3},
+   ]},
+  {num:3, task:'Write a practice paragraph explaining the cycle',
+   desc:'Your teacher wants a short written explanation. You\'re writing a practice version.',
+   choices:[
+     {type:'self', label:'Do It Yourself', title:'Write it yourself first',
+      desc:'Write a paragraph explaining the water cycle in your own words, then check it.',
+      fb:'Writing in your own words is one of the best ways to find out what you actually understand — and what you don\'t.',
+      learning:10},
+     {type:'help', label:'AI to Help', title:'Write it, then ask AI for feedback',
+      desc:'Write your own paragraph first, then ask AI "what\'s missing or unclear in my explanation?"',
+      fb:'Writing first and using AI for feedback is excellent practice. You did the thinking, AI helped you improve it.',
+      learning:9},
+     {type:'ai', label:'Let AI Do It', title:'Ask AI to write the paragraph for you',
+      desc:'Ask AI for a model paragraph and submit it as your practice.',
+      fb:'The paragraph exists, but you haven\'t written anything. When the test comes, you\'ll need to produce the explanation yourself.',
+      learning:1},
+   ]},
+  {num:4, task:'Check your key facts before the test',
+   desc:'You want to make sure your facts are correct before tomorrow.',
+   choices:[
+     {type:'self', label:'Do It Yourself', title:'Write down what you remember and check',
+      desc:'Write out everything you know from memory, then check against your notes.',
+      fb:'Self-testing from memory — even just writing bullet points — is one of the most effective revision techniques.',
+      learning:10},
+     {type:'help', label:'AI to Help', title:'Ask AI to quiz you',
+      desc:'Ask AI to ask you 5 questions about the water cycle. Answer them yourself.',
+      fb:'Active retrieval practice — being quizzed and recalling answers — is excellent for memory. Smart use of AI.',
+      learning:8},
+     {type:'ai', label:'Let AI Do It', title:'Ask AI to give you the key facts to memorise',
+      desc:'Ask AI for a bullet-point cheat sheet to quickly read before the test.',
+      fb:'A cheat sheet is useful — but passive reading is much weaker than active recall. You might forget it under test conditions.',
+      learning:4},
+   ]},
+  {num:5, task:'Prepare an answer for an essay question',
+   desc:'The test will have an essay question. You want to prepare a strong answer.',
+   choices:[
+     {type:'self', label:'Do It Yourself', title:'Plan and draft your answer yourself',
+      desc:'Plan your answer with bullet points, then write a practice essay.',
+      fb:'Planning and drafting builds the exact skill the essay is testing — organising and expressing your understanding.',
+      learning:10},
+     {type:'help', label:'AI to Help', title:'Plan it, then ask AI to critique your plan',
+      desc:'Plan your answer yourself, share it with AI, and ask: "What\'s weak or missing in my argument?"',
+      fb:'Planning yourself and getting AI critique is collaborative — you did the intellectual work, AI gave targeted feedback.',
+      learning:8},
+     {type:'ai', label:'Let AI Do It', title:'Ask AI to write a model essay answer',
+      desc:'Ask AI for a perfect model essay on the question, and study it.',
+      fb:'Reading model answers can be useful, but it\'s very different from writing one. You\'ll still need to produce the answer yourself in the test.',
+      learning:3},
+   ]},
+];
+
+const quizQuestions = [
+  {q:'What are the four main stages of the water cycle?', opts:['Freezing, melting, boiling, condensing','Evaporation, condensation, precipitation, collection','Rising, cooling, raining, flowing','Heating, clouding, storming, drying'], correct:1},
+  {q:'What drives evaporation from the ocean?', opts:['Wind','The moon\'s gravity','Heat energy from the sun','Underwater currents'], correct:2},
+  {q:'What is condensation in the water cycle?', opts:['Water soaking into the ground','Water vapour cooling and turning back into liquid droplets','Rain falling from clouds','Ice melting into rivers'], correct:1},
+  {q:'Where does most of the world\'s evaporation come from?', opts:['Rivers and lakes','Glaciers','Oceans','Plant leaves'], correct:0},
+  {q:'What is transpiration?', opts:['Water evaporating from soil','Water vapour released by plants','Rain absorbed by rocks','Ocean water evaporating'], correct:1},
+];
+
+let choices = [], choicesMade = 0, totalLearning = 0;
+let quizAnswers = new Array(quizQuestions.length).fill(-1);
+let quizAnswered = 0;
+
+function updateProgress(step){
+  const segs = document.querySelectorAll('.progress-seg');
+  segs.forEach((s,i) => {
+    s.className = 'progress-seg';
+    if(i < step) s.classList.add('done');
+    else if(i === step) s.classList.add('current');
+  });
+}
+
+function showStep(idx){
+  if(idx >= steps.length){ startQuiz(); return; }
+  const s = steps[idx];
+  updateProgress(idx);
+  document.getElementById('step-area').innerHTML = `
+    <div class="step-box">
+      <div class="step-num">STUDY STEP ${s.num} OF ${steps.length}</div>
+      <div class="step-task">${s.task}</div>
+      <div class="step-desc">${s.desc}</div>
+    </div>
+    <div class="label">How will you approach this?</div>
+    <div class="choice-grid">
+      ${s.choices.map((ch,ci)=>`
+        <div class="choice-card ${ch.type}" onclick="pickChoice(${idx},${ci})">
+          <div style="font-size:.7rem;font-family:monospace;color:${ch.type==='self'?'var(--green)':ch.type==='help'?'var(--amber)':'var(--orange)'};">${ch.label}</div>
+          <div class="choice-title">${ch.title}</div>
+          <div class="choice-desc">${ch.desc}</div>
+        </div>
+      `).join('')}
+    </div>
+    <div class="feedback-pop" id="fb-pop"></div>
+    <button class="btn" id="cont-btn" onclick="showStep(${idx+1})" style="display:none">${idx < steps.length-1 ? 'Next Step →' : 'Take the Quiz →'}</button>
+  `;
+}
+
+function pickChoice(stepIdx, choiceIdx){
+  const s = steps[stepIdx];
+  const ch = s.choices[choiceIdx];
+  choices[stepIdx] = ch.type;
+  totalLearning += ch.learning;
+  document.querySelectorAll('.choice-card').forEach(c => c.onclick = null);
+  document.querySelectorAll('.choice-card')[choiceIdx].classList.add('chosen');
+  const fb = document.getElementById('fb-pop');
+  fb.className = 'feedback-pop show ' + ch.type;
+  fb.innerHTML = '<strong>' + ch.title + '</strong><br>' + ch.fb + '<br><span style="font-size:.75rem;font-family:monospace">Learning value: ' + '█'.repeat(Math.ceil(ch.learning/2)) + ' (' + ch.learning + '/10)</span>';
+  document.getElementById('cont-btn').style.display = 'block';
+}
+
+function startQuiz(){
+  document.getElementById('phase-study').classList.remove('active');
+  document.getElementById('phase-quiz').classList.add('active');
+  document.getElementById('quiz-area').innerHTML = quizQuestions.map((q,qi) => `
+    <div class="quiz-q">
+      <div class="q-text">${qi+1}. ${q.q}</div>
+      <div class="q-opts" id="q-opts-${qi}">
+        ${q.opts.map((o,oi)=>`<button onclick="answerQ(${qi},${oi})">${o}</button>`).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+function answerQ(qi, oi){
+  if(quizAnswers[qi] !== -1) return;
+  quizAnswers[qi] = oi;
+  quizAnswered++;
+  const opts = document.querySelectorAll(`#q-opts-${qi} button`);
+  opts.forEach((b,i) => {
+    b.onclick = null;
+    if(i === quizQuestions[qi].correct) b.classList.add('correct');
+    else if(i === oi && oi !== quizQuestions[qi].correct) b.classList.add('wrong');
+  });
+  if(quizAnswered >= quizQuestions.length) document.getElementById('quiz-submit').style.display='block';
+}
+
+function submitQuiz(){
+  const quizScore = quizAnswers.filter((a,i) => a === quizQuestions[i].correct).length;
+  const maxLearn = steps.length * 10;
+  const learnPct = Math.round(totalLearning / maxLearn * 100);
+  const aiCount = choices.filter(c=>c==='ai').length;
+  const selfCount = choices.filter(c=>c==='self').length;
+  const helpCount = choices.filter(c=>c==='help').length;
+
+  document.getElementById('phase-quiz').style.display='none';
+  const panel = document.getElementById('score-panel');
+  panel.classList.add('show');
+  document.getElementById('score-big').textContent = quizScore + '/' + quizQuestions.length;
+  document.getElementById('learn-pct').textContent = learnPct + '%';
+  const fill = document.getElementById('learn-fill');
+  fill.style.width = learnPct + '%';
+  fill.style.background = learnPct > 65 ? 'var(--green)' : learnPct > 40 ? 'var(--amber)' : 'var(--orange)';
+
+  let analysis = '';
+  if(aiCount >= 4) analysis = `You let AI do most of the work (${aiCount} out of 5 steps). Your quiz score reflects this — when AI does the thinking for you, you miss the learning. The information existed in the AI\'s outputs, but it didn\'t transfer to your memory.`;
+  else if(selfCount >= 3) analysis = `You did most of the thinking yourself (${selfCount} steps). This takes more effort — but your quiz results show the payoff. Active engagement builds durable understanding.`;
+  else if(helpCount >= 2 && aiCount <= 1) analysis = `You used AI as a study partner — asking for explanations, feedback, and quizzes — while doing the thinking yourself. This is one of the most effective uses of AI for learning.`;
+  else analysis = `You mixed approaches. Notice which steps you let AI handle fully — those are likely the ones where you struggled on the quiz. The pattern is consistent: where you thought, you retained; where AI thought for you, it didn\'t stick.`;
+
+  document.getElementById('choice-analysis').textContent = analysis;
+}
+
+function restart(){
+  choices = []; choicesMade = 0; totalLearning = 0;
+  quizAnswers = new Array(quizQuestions.length).fill(-1); quizAnswered = 0;
+  document.getElementById('score-panel').classList.remove('show');
+  document.getElementById('phase-quiz').style.display='';
+  document.getElementById('phase-quiz').classList.remove('active');
+  document.getElementById('phase-study').classList.add('active');
+  showStep(0);
+}
+
+showStep(0);
+</script>
+</body>
+</html>

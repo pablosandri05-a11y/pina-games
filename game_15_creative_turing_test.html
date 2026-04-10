@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Creative Turing Test – Card 15</title>
+<style>
+  :root{--bg:#FFF8EE;--orange:#E8722A;--green:#2D6A4F;--amber:#F4C542;--dark:#1A1A2E;--slate:#5C5C7A;--light-o:#FDE8D0;--light-g:#EBF5EE;--white:#fff}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--dark);font-family:'Segoe UI',Arial,sans-serif;min-height:100vh;padding:16px}
+  h1{color:var(--orange);font-size:1.4rem;margin-bottom:4px}
+  .badge{background:var(--light-o);color:var(--orange);font-family:monospace;font-size:.75rem;padding:3px 10px;border-radius:20px;display:inline-block;margin-bottom:12px}
+  .card{background:var(--white);border-radius:12px;padding:18px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,.07)}
+  .label{font-family:monospace;font-size:.75rem;color:var(--orange);font-weight:700;margin-bottom:8px;text-transform:uppercase}
+  .poem-box{background:var(--bg);border-radius:8px;padding:16px;font-size:.92rem;line-height:1.8;border-left:4px solid var(--amber);margin-bottom:14px;font-style:italic;min-height:90px}
+  .vote-row{display:flex;gap:10px;margin-bottom:8px}
+  .vote-btn{flex:1;padding:12px;border:2px solid #ddd;border-radius:8px;font-size:.9rem;font-weight:700;cursor:pointer;background:var(--white);transition:.2s}
+  .vote-btn:hover{transform:scale(1.02)}
+  .vote-btn.H{border-color:var(--green)}
+  .vote-btn.H:hover,.vote-btn.H.sel{background:var(--light-g);border-color:var(--green);color:var(--green)}
+  .vote-btn.A{border-color:var(--orange)}
+  .vote-btn.A:hover,.vote-btn.A.sel{background:var(--light-o);border-color:var(--orange);color:var(--orange)}
+  .reveal-box{border-radius:8px;padding:12px;font-size:.85rem;line-height:1.5;display:none;margin-bottom:10px}
+  .reveal-box.show{display:block}
+  .reveal-box.correct{background:var(--light-g);border-left:4px solid var(--green)}
+  .reveal-box.wrong{background:#fff0e0;border-left:4px solid var(--orange)}
+  .btn{background:var(--orange);color:#fff;border:none;border-radius:8px;padding:12px 22px;font-size:.9rem;cursor:pointer;font-weight:700;width:100%;transition:.2s}
+  .btn:hover{background:#c85e1a}
+  .btn.green{background:var(--green)}
+  .progress-dots{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+  .dot{width:22px;height:8px;border-radius:4px;background:#ddd;transition:.3s}
+  .dot.done-right{background:var(--green)}
+  .dot.done-wrong{background:var(--orange)}
+  .dot.current{background:var(--amber)}
+  .score-panel{display:none;text-align:center;padding:20px}
+  .score-panel.show{display:block}
+  .score-big{font-size:3rem;font-weight:900;color:var(--orange)}
+  .reflect-card{text-align:left;margin-top:14px}
+  .reflect-q{background:var(--amber);border-radius:8px;padding:10px 14px;font-size:.88rem;font-family:monospace;margin-bottom:8px;color:var(--dark)}
+  textarea{width:100%;border:2px solid #ddd;border-radius:8px;padding:10px;font-size:.88rem;resize:vertical;min-height:60px;font-family:inherit}
+  textarea:focus{outline:none;border-color:var(--orange)}
+  .step-num{font-family:monospace;font-size:.78rem;color:var(--slate);margin-bottom:8px}
+</style>
+</head>
+<body>
+<div class="badge">LEVEL 2 · CARD 15</div>
+<h1>The Creative Turing Test</h1>
+<p style="color:var(--slate);font-size:.88rem;margin-bottom:14px">Read each poem or piece of writing. Was it made by a human or by AI? Vote, see the reveal — then reflect.</p>
+
+<div id="main-game">
+  <div class="progress-dots" id="dots"></div>
+  <div class="step-num" id="step-num"></div>
+  <div class="card">
+    <div class="label">Theme: <span id="theme-label"></span></div>
+    <div class="poem-box" id="poem-text"></div>
+    <div style="font-size:.78rem;color:var(--slate);margin-bottom:10px;font-family:monospace">Is this HUMAN or AI?</div>
+    <div class="vote-row">
+      <button class="vote-btn H" id="btn-h" onclick="vote('H')">👤 Human</button>
+      <button class="vote-btn A" id="btn-a" onclick="vote('A')">🤖 AI</button>
+    </div>
+    <div class="reveal-box" id="reveal"></div>
+    <button class="btn" id="next-btn" onclick="nextPoem()" style="display:none;margin-top:8px">Next →</button>
+  </div>
+</div>
+
+<div class="score-panel" id="score-panel">
+  <div class="score-big" id="score-big"></div>
+  <div style="color:var(--orange);font-size:1rem">out of 8 correct</div>
+  <div style="color:var(--slate);font-size:.85rem;margin-top:6px" id="score-sub"></div>
+
+  <div class="card reflect-card" style="margin-top:16px">
+    <div class="label">Reflection</div>
+    <div class="reflect-q">Did knowing the source change how you felt about any of the writing?</div>
+    <textarea placeholder="Write your thought here..."></textarea>
+    <div class="reflect-q" style="margin-top:10px">What was the most surprising result? Why?</div>
+    <textarea placeholder="Your answer..."></textarea>
+  </div>
+
+  <div class="card reflect-card">
+    <div class="label">What the research says</div>
+    <p style="font-size:.88rem;line-height:1.5;color:var(--dark)">Studies show that people are only slightly better than chance at distinguishing human from AI writing — around 55–60% accuracy on average. What matters more than the answer is asking the right questions: <em>Is this interesting? Is this true? Does this help me?</em></p>
+  </div>
+
+  <button class="btn" onclick="restart()" style="margin-top:8px">Play Again</button>
+</div>
+
+<script>
+const poems = [
+  {theme:"Rain at night", truth:"H",
+   text:`The rain came quietly at first —\ntapping at the window like a shy friend.\nBy midnight it had stopped pretending\nand was throwing itself against the glass.\nI thought about calling you.\nI didn't.`,
+   why:"Specific emotional restraint at the end ('I thought about calling you. I didn\'t.') — a deliberate choice only a human in that moment would make."},
+  {theme:"Rain at night", truth:"A",
+   text:`The rain fell steadily through the night,\ncreating patterns on the window pane.\nEach drop carried the memory of clouds,\nof distant oceans and returning cycles.\nNature's quiet renewal, endlessly patient,\nwashing the world clean by morning.`,
+   why:"Balanced, symbolic language ('distant oceans', 'endlessly patient'), no personal stakes, circular structure — characteristic AI poetry."},
+  {theme:"A city at night", truth:"A",
+   text:`The city breathes in neon light,\na thousand windows holding lives unknown.\nStreet lamps cast their amber glow on stone,\nas taxis trace the arteries of night.\nHere, in the hum of engines and of crowds,\nis where the human story writes itself.`,
+   why:"Smooth rhyme scheme, generic urban imagery, 'human story' abstraction — competent but emotionally hollow AI verse."},
+  {theme:"A city at night", truth:"H",
+   text:`Friday nights in this city smell like\ncold chips and someone else's perfume.\nThere's always a man playing trumpet\noutside the theatre. Nobody stops.\nI stopped once. He looked so surprised\nI didn't know what to do and walked away quickly.`,
+   why:"Chips, perfume, awkward social moment, specific embarrassment — a lived experience too particular and odd for AI to generate naturally."},
+  {theme:"Losing something important", truth:"H",
+   text:`The password was my dog's name plus a number.\nShe's been dead eleven years.\nI had to change it last spring.\nI chose something sensible.\nI still type the old one sometimes, automatically,\nand stare at the error message\nfor longer than I should.`,
+   why:"Mundane specificity (password, error message), grief expressed through technology — deeply human oblique emotion."},
+  {theme:"Losing something important", truth:"A",
+   text:`Loss arrives in different forms —\na photograph faded beyond recognition,\na voice no longer answering the phone.\nWhat we lose shapes what we become,\nand in that reshaping, something new emerges:\nnot replacement, but continuation.`,
+   why:"Abstract comfort ('not replacement, but continuation'), no specific loss described, philosophical framing — AI summarising loss without experiencing it."},
+  {theme:"Technology", truth:"A",
+   text:`We hold the future in our palms,\ntiny screens reflecting boundless skies.\nWith every tap, new worlds unfold,\nand distances dissolve like morning frost.\nYet in this age of endless connectivity,\nwe search for what was always there inside.`,
+   why:"'Tiny screens', 'boundless skies', 'morning frost' — clichéd contrasts, abstract ending, characteristic of AI optimism padding."},
+  {theme:"Technology", truth:"H",
+   text:`My grandad video-called us from the care home.\nHe kept forgetting his hearing aid was in.\nMy mum spent twenty minutes shouting\n"CAN YOU HEAR ME DAD"\ninto the laptop in the kitchen.\nThe dog hid under the table.\nWe were all laughing by the end.\nI don't know why that felt important.`,
+   why:"Chaotic family detail, dog hiding, confusion, uncertain emotional meaning — completely human domestic scene."},
+];
+
+let current = 0, score = 0, results = [], voted = false;
+
+function buildDots(){
+  const d = document.getElementById('dots');
+  d.innerHTML = poems.map((_, i) => `<div class="dot ${i < current ? (results[i]?'done-right':'done-wrong') : i===current?'current':''}" ></div>`).join('');
+}
+
+function showPoem(){
+  if(current >= poems.length){ showScore(); return; }
+  voted = false;
+  const p = poems[current];
+  document.getElementById('theme-label').textContent = p.theme;
+  document.getElementById('poem-text').textContent = p.text;
+  document.getElementById('reveal').className = 'reveal-box';
+  document.getElementById('reveal').innerHTML = '';
+  document.getElementById('next-btn').style.display = 'none';
+  document.getElementById('btn-h').className = 'vote-btn H';
+  document.getElementById('btn-a').className = 'vote-btn A';
+  document.getElementById('btn-h').onclick = ()=>vote('H');
+  document.getElementById('btn-a').onclick = ()=>vote('A');
+  document.getElementById('step-num').textContent = 'Piece ' + (current+1) + ' of ' + poems.length;
+  buildDots();
+}
+
+function vote(v){
+  if(voted) return;
+  voted = true;
+  const p = poems[current];
+  const correct = v === p.truth;
+  if(correct) score++;
+  results[current] = correct;
+  document.getElementById('btn-h').onclick = null;
+  document.getElementById('btn-a').onclick = null;
+  document.getElementById('btn-' + v.toLowerCase()).classList.add('sel');
+  const rb = document.getElementById('reveal');
+  rb.className = 'reveal-box show ' + (correct ? 'correct' : 'wrong');
+  rb.innerHTML = (correct ? '✓ Correct! ' : '✗ This was ') + '<strong>' + (p.truth==='H'?'👤 HUMAN':'🤖 AI') + '</strong><br><span style="font-size:.82rem;color:var(--dark)">' + p.why + '</span>';
+  document.getElementById('next-btn').style.display = 'block';
+  buildDots();
+}
+
+function nextPoem(){ current++; showPoem(); }
+
+function showScore(){
+  document.getElementById('main-game').style.display = 'none';
+  document.getElementById('score-panel').classList.add('show');
+  document.getElementById('score-big').textContent = score + '/8';
+  const subs = ['Almost random chance — detection is genuinely hard!','You caught some — the signals are subtle.','Solid! You have a good eye for writing patterns.','Excellent creative radar!','Perfect! You could teach this class.'];
+  document.getElementById('score-sub').textContent = subs[Math.min(Math.floor(score/2), subs.length-1)];
+}
+
+function restart(){
+  current=0; score=0; results=[];
+  document.getElementById('main-game').style.display='block';
+  document.getElementById('score-panel').classList.remove('show');
+  showPoem();
+}
+
+showPoem();
+</script>
+</body>
+</html>

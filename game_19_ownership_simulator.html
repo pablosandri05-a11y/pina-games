@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Ownership Simulator – Card 19</title>
+<style>
+  :root{--bg:#0F1729;--teal:#00D4AA;--coral:#FF6B6B;--gold:#FFD166;--txt:#F0F4FF;--surf:#1A2540;--muted:#8899BB;--white:#fff}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--txt);font-family:'Segoe UI',Arial,sans-serif;min-height:100vh;padding:16px}
+  h1{color:var(--teal);font-size:1.4rem;margin-bottom:4px}
+  .badge{background:rgba(0,212,170,.15);color:var(--teal);font-family:monospace;font-size:.75rem;padding:3px 10px;border-radius:20px;display:inline-block;margin-bottom:12px;border:1px solid var(--teal)}
+  .card{background:var(--surf);border-radius:12px;padding:18px;margin-bottom:14px}
+  .label{font-family:monospace;font-size:.75rem;color:var(--teal);font-weight:700;margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em}
+  input,textarea{width:100%;background:var(--bg);border:2px solid rgba(0,212,170,.3);border-radius:8px;padding:10px 12px;font-size:.9rem;color:var(--txt);font-family:inherit;resize:vertical}
+  input:focus,textarea:focus{outline:none;border-color:var(--teal)}
+  .btn{background:var(--teal);color:var(--bg);border:none;border-radius:8px;padding:12px 22px;font-size:.9rem;cursor:pointer;font-weight:700;width:100%;margin-top:10px;transition:.2s}
+  .btn:hover{background:#00b892}
+  .artwork-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+  .artwork-tile{border-radius:10px;overflow:hidden;cursor:pointer;border:3px solid transparent;transition:.2s;background:var(--bg)}
+  .artwork-tile:hover{border-color:var(--gold)}
+  .artwork-tile.selected{border-color:var(--gold)}
+  .artwork-tile .art-preview{height:80px;display:flex;align-items:center;justify-content:center;font-size:2.5rem}
+  .artwork-tile .art-label{padding:6px;font-size:.75rem;font-family:monospace;color:var(--muted);text-align:center}
+  .rule-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+  .rule-btn{border:2px solid rgba(0,212,170,.3);border-radius:10px;padding:12px 10px;cursor:pointer;background:var(--bg);transition:.2s;text-align:center}
+  .rule-btn:hover{border-color:var(--teal);background:rgba(0,212,170,.07)}
+  .rule-btn.active{border-color:var(--gold);background:rgba(255,209,102,.08)}
+  .rule-btn .rule-icon{font-size:1.6rem;margin-bottom:4px}
+  .rule-btn .rule-name{font-size:.82rem;font-weight:700;color:var(--teal)}
+  .rule-btn .rule-sub{font-size:.72rem;color:var(--muted)}
+  .outcome-row{display:flex;align-items:flex-start;gap:10px;padding:10px;border-radius:8px;margin-bottom:6px}
+  .outcome-row.artist{background:rgba(255,107,107,.1);border-left:3px solid var(--coral)}
+  .outcome-row.user{background:rgba(0,212,170,.08);border-left:3px solid var(--teal)}
+  .outcome-row.company{background:rgba(255,209,102,.08);border-left:3px solid var(--gold)}
+  .outcome-row.nobody{background:rgba(136,153,187,.1);border-left:3px solid var(--muted)}
+  .party-icon{font-size:1.4rem;flex-shrink:0}
+  .party-info .party-name{font-size:.8rem;font-family:monospace;font-weight:700;margin-bottom:2px}
+  .party-info .party-outcome{font-size:.82rem;color:var(--muted);line-height:1.4}
+  .verdict-box{border-radius:10px;padding:14px;border:1px solid rgba(0,212,170,.3);margin-top:8px}
+  .phase{display:none}
+  .phase.active{display:block}
+  .step-count{font-family:monospace;font-size:.78rem;color:var(--muted);margin-bottom:10px}
+</style>
+</head>
+<body>
+<div class="badge">LEVEL 3 · CARD 19</div>
+<h1>The Ownership Simulator</h1>
+<p style="color:var(--muted);font-size:.88rem;margin-bottom:14px">Describe an artwork. See what an AI "generates" from it. Then try different ownership rule systems and see who wins — and who loses.</p>
+
+<div class="phase active" id="phase-create">
+  <div class="card">
+    <div class="label">Step 1 — Describe an artwork</div>
+    <p style="font-size:.85rem;color:var(--muted);margin-bottom:10px">Type a brief description of an artwork concept. Be as creative as you like.</p>
+    <textarea id="artwork-desc" rows="3" placeholder="Example: A painting of a lighthouse in a storm, using deep blues and crashing silver waves, inspired by Turner's dramatic style..."></textarea>
+    <button class="btn" onclick="generateArt()">Generate AI Interpretations →</button>
+  </div>
+</div>
+
+<div class="phase" id="phase-pick-art">
+  <div class="card">
+    <div class="label">Step 2 — AI Generated 3 Interpretations</div>
+    <p style="font-size:.85rem;color:var(--muted);margin-bottom:10px">The AI has processed your description and produced three variations. Select the one you want to explore.</p>
+    <div class="artwork-grid" id="artwork-grid"></div>
+    <p style="font-size:.78rem;color:var(--muted);font-style:italic">Note: This is a simulation. The "artworks" are represented as concepts.</p>
+    <button class="btn" id="select-art-btn" onclick="pickArt()" style="margin-top:12px">Continue with Selected →</button>
+  </div>
+</div>
+
+<div class="phase" id="phase-rules">
+  <div class="card">
+    <div class="label">Step 3 — Choose an Ownership Rule System</div>
+    <p style="font-size:.85rem;color:var(--muted);margin-bottom:12px">Under this rule system, who owns the AI artwork? Select a rule, see the consequences.</p>
+    <div class="rule-grid" id="rule-grid"></div>
+    <div id="rule-outcome" style="display:none">
+      <div class="label" style="margin-top:10px">What happens under this rule:</div>
+      <div id="outcomes-list"></div>
+      <div class="verdict-box" id="verdict-text"></div>
+      <button class="btn" onclick="tryAnotherRule()" style="background:rgba(0,212,170,.15);color:var(--teal);border:1px solid var(--teal);margin-top:10px">Try a Different Rule</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="label">Real World Context</div>
+    <p style="font-size:.88rem;line-height:1.5;color:var(--muted)">Current copyright law in most countries requires a <strong style="color:var(--txt)">human author</strong>. AI-generated works technically have no legal owner in many jurisdictions — meaning anyone can use them. The EU, US, and UK are all debating new rules. No consensus exists yet.</p>
+    <div style="margin-top:10px;padding:10px;background:rgba(255,107,107,.1);border-radius:8px;border-left:3px solid var(--coral);font-size:.85rem;line-height:1.5">
+      <strong style="color:var(--coral)">The core tension:</strong> AI systems were trained on billions of human artworks, often without consent or payment. Is the output a new creation — or an unauthorised derivative of human work?
+    </div>
+  </div>
+  <button class="btn" style="background:rgba(0,212,170,.15);color:var(--teal);border:1px solid var(--teal)" onclick="restart()">Start Over</button>
+</div>
+
+<script>
+const artworks = [
+  {icon:'🌊', label:'Interpretation A', desc:'Dramatic seascape, heavy impasto technique, Turner influence visible in light treatment', style:'Romantic/Painterly'},
+  {icon:'🔷', label:'Interpretation B', desc:'Abstract geometric composition, fragments of lighthouse and wave reduced to shapes and colour blocks', style:'Abstract/Geometric'},
+  {icon:'📷', label:'Interpretation C', desc:'Hyperrealistic digital render, photographic quality, storm lighting, dramatic wave physics', style:'Hyperrealist/Digital'},
+];
+
+const rules = [
+  {id:'artist', icon:'🎨', name:'Artist owns style', sub:'Source artists own any AI output that uses their style',
+   parties:[
+     {cls:'artist', icon:'🎨', name:'Source Artists', outcome:'Can claim ownership of AI artworks resembling their style. May receive royalties. Stronger creative rights — but very hard to enforce technically.'},
+     {cls:'user', icon:'👤', name:'You (the user)', outcome:'Cannot own the output you prompted. Must license it from relevant artists — expensive and legally complex.'},
+     {cls:'company', icon:'🏢', name:'AI Company', outcome:'Loses the ability to freely commercialise AI outputs. Must track which training artists influenced each generation.'},
+     {cls:'nobody', icon:'⚖️', name:'Society', outcome:'More protected creative economy, but slower AI adoption and enormous legal complexity. Chilling effect on AI art tools.'},
+   ],
+   verdict:'This rule best protects human artists\' rights but is extremely difficult to implement. How do you determine which of the 5 billion training images "influenced" a given output? And what happens when no single artist can be identified?'},
+  {id:'user', icon:'💬', name:'User owns prompt', sub:'Whoever writes the prompt owns the output',
+   parties:[
+     {cls:'artist', icon:'🎨', name:'Source Artists', outcome:'Receive nothing. Their work was used to train the system but they have no claim to any output. Most artists oppose this rule.'},
+     {cls:'user', icon:'👤', name:'You (the user)', outcome:'Own whatever the AI generates from your prompt. Can sell it, exhibit it, use it commercially. Maximum user freedom.'},
+     {cls:'company', icon:'🏢', name:'AI Company', outcome:'Can operate freely, not responsible for copyright claims. Benefits from user adoption while bearing no ownership responsibility.'},
+     {cls:'nobody', icon:'⚖️', name:'Society', outcome:'Maximum creative freedom, but artists lose all protection. Massive economic disruption for creative industries.'},
+   ],
+   verdict:'This is essentially the current status quo in many jurisdictions. The user has maximum freedom but artists receive no compensation for the training data that made the output possible. Many artists argue this is deeply unfair.'},
+  {id:'company', icon:'🏢', name:'Company owns output', sub:'The AI company owns all outputs from its model',
+   parties:[
+     {cls:'artist', icon:'🎨', name:'Source Artists', outcome:'Receive nothing and have no claim. The company absorbed their creative work through training and retains all value created.'},
+     {cls:'user', icon:'👤', name:'You (the user)', outcome:'Don\'t own what you prompted. You\'re licensing use from the company. You can\'t sell it as your own work.'},
+     {cls:'company', icon:'🏢', name:'AI Company', outcome:'Owns vast portfolios of AI-generated content. Enormous commercial power — but also enormous legal liability for what their AI creates.'},
+     {cls:'nobody', icon:'⚖️', name:'Society', outcome:'Most power concentrated in a handful of AI companies. Artists, users, and the public all lose ownership rights to a new category of dominant corporation.'},
+   ],
+   verdict:'This rule maximises company power and is arguably the least fair to everyone else. It creates an enormous IP empire out of work that was never the company\'s to begin with — while eliminating user and artist agency.'},
+  {id:'nobody', icon:'🌐', name:'Nobody owns it', sub:'AI output is public domain — free for everyone',
+   parties:[
+     {cls:'artist', icon:'🎨', name:'Source Artists', outcome:'Receive nothing but also face unlimited AI competition. Their training contributions are permanently uncompensated. Enormous risk to livelihoods.'},
+     {cls:'user', icon:'👤', name:'You (the user)', outcome:'Free to use, remix, sell, build on any AI output. Maximum creative freedom and zero legal complexity.'},
+     {cls:'company', icon:'🏢', name:'AI Company', outcome:'Cannot protect their model outputs commercially. Possible disincentive to develop expensive models if outputs can\'t be monetised.'},
+     {cls:'nobody', icon:'⚖️', name:'Society', outcome:'Maximum creative commons — a massive pool of freely available images, music, text. But also maximum disruption to all creative industries.'},
+   ],
+   verdict:'The "public domain" approach maximises social access but destroys incentives for human creative professionals. It also raises the question: if everything is free, how do human artists survive? And what happens to the quality and diversity of human creativity?'},
+];
+
+let selectedArt = 0;
+
+function generateArt(){
+  const desc = document.getElementById('artwork-desc').value.trim();
+  if(!desc){ document.getElementById('artwork-desc').focus(); return; }
+  document.getElementById('phase-create').classList.remove('active');
+  document.getElementById('phase-pick-art').classList.add('active');
+  document.getElementById('artwork-grid').innerHTML = artworks.map((a,i) => `
+    <div class="artwork-tile ${i===0?'selected':''}" id="art-${i}" onclick="selectArt(${i})">
+      <div class="art-preview" style="background:${['rgba(0,212,170,.1)','rgba(255,209,102,.1)','rgba(255,107,107,.1)'][i]}">${a.icon}</div>
+      <div class="art-label">${a.label}<br><span style="color:var(--muted)">${a.style}</span></div>
+    </div>
+  `).join('');
+}
+
+function selectArt(i){
+  selectedArt = i;
+  document.querySelectorAll('.artwork-tile').forEach((t,ti) => t.className = 'artwork-tile'+(ti===i?' selected':''));
+}
+
+function pickArt(){
+  document.getElementById('phase-pick-art').classList.remove('active');
+  document.getElementById('phase-rules').classList.add('active');
+  document.getElementById('rule-grid').innerHTML = rules.map((r,i) => `
+    <div class="rule-btn" id="rule-${r.id}" onclick="applyRule('${r.id}')">
+      <div class="rule-icon">${r.icon}</div>
+      <div class="rule-name">${r.name}</div>
+      <div class="rule-sub">${r.sub}</div>
+    </div>
+  `).join('');
+}
+
+function applyRule(id){
+  document.querySelectorAll('.rule-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('rule-'+id).classList.add('active');
+  const rule = rules.find(r=>r.id===id);
+  const art = artworks[selectedArt];
+  const outcomeDiv = document.getElementById('rule-outcome');
+  outcomeDiv.style.display = 'block';
+  document.getElementById('outcomes-list').innerHTML = rule.parties.map(p => `
+    <div class="outcome-row ${p.cls}">
+      <div class="party-icon">${p.icon}</div>
+      <div class="party-info">
+        <div class="party-name">${p.name}</div>
+        <div class="party-outcome">${p.outcome}</div>
+      </div>
+    </div>
+  `).join('');
+  document.getElementById('verdict-text').innerHTML = `<span style="font-family:monospace;font-size:.75rem;color:var(--gold)">ANALYSIS: </span><span style="font-size:.85rem;line-height:1.5;color:var(--muted)">${rule.verdict}</span>`;
+  outcomeDiv.scrollIntoView({behavior:'smooth'});
+}
+
+function tryAnotherRule(){
+  document.getElementById('rule-outcome').style.display='none';
+  document.querySelectorAll('.rule-btn').forEach(b=>b.classList.remove('active'));
+}
+
+function restart(){
+  document.getElementById('phase-rules').classList.remove('active');
+  document.getElementById('phase-create').classList.add('active');
+  document.getElementById('artwork-desc').value='';
+  document.getElementById('rule-outcome').style.display='none';
+}
+</script>
+</body>
+</html>

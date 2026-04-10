@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Carbon Counter – Card 13</title>
+<style>
+  :root{--bg:#FFF8EE;--orange:#E8722A;--green:#2D6A4F;--amber:#F4C542;--dark:#1A1A2E;--slate:#5C5C7A;--light-o:#FDE8D0;--light-g:#EBF5EE;--white:#fff}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--dark);font-family:'Segoe UI',Arial,sans-serif;min-height:100vh;padding:16px}
+  h1{color:var(--orange);font-size:1.4rem;margin-bottom:4px}
+  .badge{background:var(--light-o);color:var(--orange);font-family:monospace;font-size:.75rem;padding:3px 10px;border-radius:20px;display:inline-block;margin-bottom:12px}
+  .card{background:var(--white);border-radius:12px;padding:18px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,.07)}
+  .action-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f0e8dc}
+  .action-row:last-child{border-bottom:none}
+  .action-icon{font-size:1.5rem;width:36px;text-align:center}
+  .action-name{flex:1;font-size:.9rem}
+  .action-cost{font-size:.75rem;color:var(--slate);font-family:monospace}
+  .qty-wrap{display:flex;align-items:center;gap:6px}
+  .qty-btn{width:28px;height:28px;border:2px solid var(--orange);border-radius:6px;background:var(--white);color:var(--orange);font-size:1rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
+  .qty-btn:hover{background:var(--light-o)}
+  .qty-val{width:28px;text-align:center;font-weight:700;font-size:.95rem}
+  .btn{background:var(--orange);color:#fff;border:none;border-radius:8px;padding:12px 22px;font-size:.9rem;cursor:pointer;font-weight:700;width:100%;margin-top:8px;transition:.2s}
+  .btn:hover{background:#c85e1a}
+  .btn.green{background:var(--green)}
+  .section-label{font-family:monospace;font-size:.78rem;color:var(--orange);font-weight:700;margin-bottom:8px;text-transform:uppercase}
+  .meter-wrap{background:#e8e0d4;border-radius:20px;height:18px;margin-bottom:4px;overflow:hidden}
+  .meter-fill{height:18px;border-radius:20px;transition:width .8s ease;display:flex;align-items:center;padding-left:8px;font-size:.72rem;font-weight:700;color:#fff;font-family:monospace}
+  .comparison-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .comp-icon{font-size:1.2rem;width:30px;text-align:center}
+  .comp-label{flex:1;font-size:.85rem}
+  .comp-bar-wrap{width:120px;background:#e8e0d4;border-radius:10px;height:10px}
+  .comp-bar{height:10px;border-radius:10px;transition:width .6s}
+  .verdict{border-radius:10px;padding:14px;margin-top:12px;font-size:.9rem;line-height:1.5}
+  .verdict.low{background:var(--light-g);border-left:4px solid var(--green)}
+  .verdict.med{background:var(--light-o);border-left:4px solid var(--amber)}
+  .verdict.high{background:#fff0e0;border-left:4px solid var(--orange)}
+  .results-panel{display:none}
+  .results-panel.show{display:block}
+  .total-num{font-size:2.5rem;font-weight:900;color:var(--orange);font-family:monospace}
+</style>
+</head>
+<body>
+<div class="badge">LEVEL 2 · CARD 13</div>
+<h1>Your AI Carbon Counter</h1>
+<p style="color:var(--slate);font-size:.88rem;margin-bottom:14px">Select how many times you do each AI action today. See the hidden energy cost.</p>
+
+<div id="input-panel">
+  <div class="card">
+    <div class="section-label">Your Daily AI Actions</div>
+    <div id="actions-list"></div>
+  </div>
+  <button class="btn" onclick="calculate()">Calculate My Energy Cost</button>
+</div>
+
+<div class="results-panel" id="results-panel">
+  <div class="card">
+    <div class="section-label">Your Daily AI Energy Score</div>
+    <div style="margin-bottom:12px">
+      <div class="total-num" id="total-score">0</div>
+      <div style="color:var(--slate);font-size:.82rem;font-family:monospace">energy units (relative scale)</div>
+    </div>
+    <div class="meter-wrap">
+      <div class="meter-fill" id="main-meter" style="width:0%;background:var(--orange)"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:.72rem;color:var(--slate);margin-bottom:14px;font-family:monospace"><span>0 LOW</span><span>MEDIUM</span><span>HIGH 500+</span></div>
+
+    <div class="section-label">Compare to everyday activities</div>
+    <div id="comparisons"></div>
+
+    <div class="verdict" id="verdict"></div>
+  </div>
+
+  <div class="card">
+    <div class="section-label">What does this mean?</div>
+    <p style="font-size:.88rem;line-height:1.5;color:var(--dark)">Each AI action uses electricity on massive data-centre servers. Training a large AI model can produce as much CO₂ as <strong>five transatlantic flights</strong>. A single image generation uses about <strong>10x more energy</strong> than a text query.<br><br>This doesn't mean AI is bad — it means the <strong>choices we make about when and how to use it matter</strong>.</p>
+    <div style="background:var(--amber);border-radius:8px;padding:10px;margin-top:12px;font-size:.85rem;font-family:monospace;color:var(--dark)">
+      QUESTION: If your class of 30 all did the same AI actions today, what would the total cost be?
+    </div>
+  </div>
+
+  <button class="btn" onclick="reset()">Try Different Actions</button>
+</div>
+
+<script>
+const actions = [
+  {icon:'💬', name:'Ask a chatbot a question', cost:1, unit:'per question'},
+  {icon:'🖼️', name:'Generate an AI image', cost:10, unit:'per image'},
+  {icon:'📝', name:'Use AI to summarise text', cost:2, unit:'per summary'},
+  {icon:'🎵', name:'Generate AI music clip', cost:8, unit:'per clip'},
+  {icon:'📺', name:'Watch AI-recommended videos (1hr)', cost:3, unit:'per hour'},
+  {icon:'🔍', name:'AI-powered search query', cost:1, unit:'per search'},
+  {icon:'📧', name:'AI-drafted email', cost:2, unit:'per email'},
+  {icon:'🎮', name:'Play AI-powered game (1hr)', cost:5, unit:'per hour'},
+];
+
+const comparisons = [
+  {icon:'📱', label:'Charge a smartphone', cost:0.5},
+  {icon:'☕', label:'Boil a kettle for tea', cost:0.3},
+  {icon:'💡', label:'1 hour of LED lighting', cost:0.4},
+  {icon:'🚗', label:'Drive 1km in a car', cost:20},
+  {icon:'✈️', label:'1 min of a transatlantic flight', cost:150},
+];
+
+let qtys = new Array(actions.length).fill(0);
+
+function buildActions(){
+  const list = document.getElementById('actions-list');
+  list.innerHTML = actions.map((a,i) => `
+    <div class="action-row">
+      <div class="action-icon">${a.icon}</div>
+      <div>
+        <div class="action-name">${a.name}</div>
+        <div class="action-cost">${a.cost} unit${a.cost>1?'s':''} ${a.unit}</div>
+      </div>
+      <div class="qty-wrap">
+        <button class="qty-btn" onclick="adj(${i},-1)">−</button>
+        <div class="qty-val" id="qty-${i}">0</div>
+        <button class="qty-btn" onclick="adj(${i},1)">+</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function adj(i, d){
+  qtys[i] = Math.max(0, qtys[i] + d);
+  document.getElementById('qty-'+i).textContent = qtys[i];
+}
+
+function calculate(){
+  const total = qtys.reduce((s,q,i) => s + q * actions[i].cost, 0);
+  document.getElementById('input-panel').style.display = 'none';
+  document.getElementById('results-panel').classList.add('show');
+  document.getElementById('total-score').textContent = total;
+
+  const pct = Math.min(100, total / 5);
+  document.getElementById('main-meter').style.width = pct + '%';
+  document.getElementById('main-meter').textContent = total + ' units';
+
+  const maxC = Math.max(total, ...comparisons.map(c=>c.cost));
+  document.getElementById('comparisons').innerHTML = comparisons.map(c => {
+    const w = Math.round(c.cost / maxC * 100);
+    return `<div class="comparison-row">
+      <div class="comp-icon">${c.icon}</div>
+      <div class="comp-label">${c.label}<br><span style="font-size:.72rem;color:var(--slate);font-family:monospace">${c.cost} units</span></div>
+      <div class="comp-bar-wrap"><div class="comp-bar" style="width:${w}%;background:var(--slate)"></div></div>
+    </div>`;
+  }).join('') + `<div class="comparison-row" style="background:var(--light-o);border-radius:6px;padding:4px">
+      <div class="comp-icon">🤖</div>
+      <div class="comp-label"><strong>Your AI actions today</strong></div>
+      <div class="comp-bar-wrap"><div class="comp-bar" style="width:${Math.min(100,Math.round(total/maxC*100))}%;background:var(--orange)"></div></div>
+    </div>`;
+
+  const v = document.getElementById('verdict');
+  if(total === 0){ v.className='verdict low'; v.innerHTML='You used no AI today! That\'s very low — though remember, passive AI (recommendations, auto-correct) adds up too.'; }
+  else if(total < 30){ v.className='verdict low'; v.innerHTML='<strong>Low impact.</strong> Your AI use today has a modest energy footprint — similar to charging your phone a few times.'; }
+  else if(total < 100){ v.className='verdict med'; v.innerHTML='<strong>Moderate impact.</strong> Your AI actions today use meaningful energy. Worth asking: were all of these necessary?'; }
+  else { v.className='verdict high'; v.innerHTML='<strong>High impact.</strong> That\'s a significant amount of AI energy use. Consider which actions were truly useful vs. habitual.'; }
+}
+
+function reset(){
+  qtys = new Array(actions.length).fill(0);
+  actions.forEach((_,i) => { const el=document.getElementById('qty-'+i); if(el) el.textContent='0'; });
+  document.getElementById('input-panel').style.display = 'block';
+  document.getElementById('results-panel').classList.remove('show');
+}
+
+buildActions();
+</script>
+</body>
+</html>

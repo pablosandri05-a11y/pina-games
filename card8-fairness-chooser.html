@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fairness Rule Chooser - Can AI Know What Is Fair?</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --navy:#1B4D5C;--teal:#3D9BA0;--light-teal:#5CC5C0;
+    --ice:#E8F4F8;--cream:#F5F9FA;
+    --equal-blue:#2196F3;--need-orange:#FF9800;--effort-green:#4CAF50;
+    --equal-bg:#E3F2FD;--need-bg:#FFF3E0;--effort-bg:#E8F5E9;
+    --shadow:0 4px 20px rgba(27,77,92,0.12);
+  }
+  body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--navy);min-height:100vh}
+  .header{background:linear-gradient(135deg,var(--navy),var(--teal));color:#fff;padding:28px 20px 24px;text-align:center;position:relative;overflow:hidden}
+  .header::before{content:'';position:absolute;top:-40px;right:-40px;width:120px;height:120px;background:rgba(255,255,255,.08);border-radius:50%}
+  .card-badge{display:inline-block;background:rgba(255,255,255,.2);padding:3px 12px;border-radius:20px;font-size:.75rem;font-weight:700;letter-spacing:1px;margin-bottom:8px;text-transform:uppercase}
+  .header h1{font-size:clamp(1.4rem,5vw,1.9rem);font-weight:900;position:relative}
+  .header p{font-size:clamp(.85rem,3vw,1rem);opacity:.9;font-weight:600;position:relative}
+  .progress-bar{background:var(--ice);padding:12px 20px;display:flex;align-items:center;gap:10px;border-bottom:2px solid rgba(27,77,92,.06);position:sticky;top:0;z-index:10}
+  .progress-track{flex:1;height:10px;background:rgba(27,77,92,.08);border-radius:5px;overflow:hidden}
+  .progress-fill{height:100%;background:linear-gradient(90deg,var(--teal),var(--light-teal));border-radius:5px;transition:width .5s;width:0%}
+  .progress-text{font-size:.8rem;font-weight:700;color:var(--navy);min-width:40px;text-align:right}
+  .main{max-width:540px;margin:0 auto;padding:20px 16px 100px}
+  .scenario-card{background:#fff;border-radius:20px;box-shadow:var(--shadow);padding:24px 20px;margin-bottom:16px;animation:slideUp .4s ease}
+  @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+  .scenario-label{font-size:.7rem;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--teal);margin-bottom:8px}
+  .scenario-box{background:#FFF8E1;border-left:4px solid #FFB300;border-radius:0 14px 14px 0;padding:16px;margin-bottom:6px;position:relative}
+  .scenario-box::before{content:'⚖️';position:absolute;top:-10px;left:-10px;font-size:1.3rem;background:#fff;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+  .scenario-text{font-size:.95rem;line-height:1.5;font-weight:700}
+  .characters{display:flex;gap:10px;margin:14px 0;justify-content:center;flex-wrap:wrap}
+  .character{background:var(--ice);border-radius:12px;padding:10px 14px;text-align:center;min-width:90px;border:2px solid transparent}
+  .character .emoji{font-size:1.5rem}
+  .character .name{font-size:.75rem;font-weight:800;margin-top:2px}
+  .character .detail{font-size:.7rem;font-weight:600;color:#777;margin-top:2px}
+  .prompt{font-size:.9rem;font-weight:700;color:var(--teal);text-align:center;margin:14px 0}
+  .rule-buttons{display:flex;flex-direction:column;gap:8px}
+  .rule-btn{padding:14px 16px;border:3px solid;border-radius:14px;font-family:'Nunito',sans-serif;font-size:.85rem;font-weight:700;cursor:pointer;transition:all .2s;background:#fff;text-align:left;display:flex;align-items:center;gap:10px}
+  .rule-btn:active{transform:scale(.97)}
+  .rule-btn .icon{font-size:1.2rem;flex-shrink:0}
+  .btn-equal{border-color:var(--equal-blue);color:var(--equal-blue)}
+  .btn-equal:hover{background:var(--equal-bg);transform:translateY(-2px)}
+  .btn-need{border-color:var(--need-orange);color:var(--need-orange)}
+  .btn-need:hover{background:var(--need-bg);transform:translateY(-2px)}
+  .btn-effort{border-color:var(--effort-green);color:var(--effort-green)}
+  .btn-effort:hover{background:var(--effort-bg);transform:translateY(-2px)}
+  .rule-btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important}
+  .rule-btn.selected{color:#fff}
+  .btn-equal.selected{background:var(--equal-blue)}
+  .btn-need.selected{background:var(--need-orange)}
+  .btn-effort.selected{background:var(--effort-green)}
+  .outcome{margin-top:16px;padding:16px;border-radius:14px;background:var(--ice);border:2px solid var(--teal);animation:fadeIn .3s;display:none}
+  .outcome.show{display:block}
+  @keyframes fadeIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+  .outcome-title{font-size:.9rem;font-weight:800;margin-bottom:6px}
+  .outcome-result{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+  .outcome-char{background:#fff;border-radius:10px;padding:8px 12px;font-size:.8rem;font-weight:700;text-align:center;flex:1;min-width:70px}
+  .outcome-char .gets{font-size:1.1rem;font-weight:900;color:var(--teal)}
+  .outcome-text{font-size:.85rem;line-height:1.5;font-weight:600;color:#555}
+  .discuss-box{background:#F3E5F5;border-radius:10px;padding:12px;margin-top:10px}
+  .discuss-box p{font-size:.8rem;font-weight:700;color:#7E57C2}
+  .next-btn{display:inline-block;margin-top:12px;padding:10px 28px;background:var(--teal);color:#fff;border:none;border-radius:10px;font-family:'Nunito',sans-serif;font-size:.9rem;font-weight:800;cursor:pointer;transition:all .2s}
+  .next-btn:hover{background:var(--navy);transform:translateY(-1px)}
+  .results-card{background:#fff;border-radius:24px;box-shadow:var(--shadow);padding:32px 24px;text-align:center;margin-bottom:20px;animation:slideUp .5s}
+  .results-title{font-size:1.3rem;font-weight:900;margin-bottom:12px}
+  .results-msg{font-size:.95rem;line-height:1.6;font-weight:600;color:#555;margin-bottom:24px}
+  .play-again{padding:14px 40px;background:linear-gradient(135deg,var(--navy),var(--teal));color:#fff;border:none;border-radius:14px;font-family:'Nunito',sans-serif;font-size:1rem;font-weight:800;cursor:pointer;transition:all .2s}
+  .play-again:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(27,77,92,.3)}
+  .tip-box{background:linear-gradient(135deg,#FFF8E1,#FFF3E0);border-radius:16px;padding:20px;text-align:left;margin-top:16px}
+  .tip-box h3{font-size:.95rem;font-weight:800;color:#E65100;margin-bottom:8px}
+  .tip-box p{font-size:.85rem;line-height:1.6;font-weight:600;color:#555}
+  .hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="card-badge">Card 8 - Digital Activity</div>
+  <h1>Fairness Rule Chooser</h1>
+  <p>Pick a rule and see what happens!</p>
+</div>
+<div class="progress-bar">
+  <div class="progress-track"><div class="progress-fill" id="pFill"></div></div>
+  <div class="progress-text" id="pText">0/4</div>
+</div>
+<div class="main">
+  <div id="gameArea"></div>
+  <div id="resultsArea" class="hidden"></div>
+</div>
+<script>
+const scenarios=[
+  {
+    title:"Sharing snacks at a party",
+    text:"There are 12 biscuits for 3 children at a birthday party.",
+    chars:[{emoji:"🧒",name:"Ava",detail:"Arrived early, helped set up"},{emoji:"👦",name:"Ben",detail:"Arrived on time"},{emoji:"👧",name:"Cara",detail:"Arrived late, feeling hungry"}],
+    total:12,
+    rules:{
+      equal:{dist:[4,4,4],note:"Everyone gets the same. Simple and clear. But Ava helped set up and Cara is very hungry."},
+      need:{dist:[3,3,6],note:"Cara gets more because she is hungriest. But is it fair that Ava, who helped, gets less than Cara?"},
+      effort:{dist:[6,3,3],note:"Ava gets more because she helped. But Cara is hungry and might feel left out."}
+    },
+    discuss:"Is there one perfect answer? What would you do differently?"
+  },
+  {
+    title:"Extra reading time",
+    text:"The teacher has 30 extra minutes of reading time to give to 3 students this week.",
+    chars:[{emoji:"📚",name:"Dani",detail:"Reads well, loves books"},{emoji:"📖",name:"Eli",detail:"Struggles with reading"},{emoji:"📕",name:"Fay",detail:"Average reader, tried hard"}],
+    total:30,
+    rules:{
+      equal:{dist:[10,10,10],note:"Everyone gets the same time. Fair on the surface, but Eli needs more help and Fay made the most effort."},
+      need:{dist:[5,20,5],note:"Eli gets most of the time because he needs extra help. But Fay tried very hard and gets nothing extra."},
+      effort:{dist:[5,5,20],note:"Fay gets the most because she tried hardest. But Eli still struggles and might fall further behind."}
+    },
+    discuss:"Should AI know who tried hardest or who needs help? How would it know?"
+  },
+  {
+    title:"Choosing team captains",
+    text:"The class must pick 2 team captains from 3 candidates for sports day.",
+    chars:[{emoji:"🏃",name:"Gus",detail:"Fastest runner"},{emoji:"🤝",name:"Hana",detail:"Best at teamwork"},{emoji:"🆕",name:"Ines",detail:"New student, no friends yet"}],
+    total:2,
+    rules:{
+      equal:{dist:["Maybe","Maybe","Maybe"],note:"A random pick treats everyone the same. But it ignores skills, teamwork, and who might benefit most."},
+      need:{dist:["No","No","Yes + 1 other"],note:"Ines gets chosen because she needs friends. But the team might miss strong leadership."},
+      effort:{dist:["Yes","Yes","No"],note:"Gus and Hana are chosen for their skills. But Ines misses a chance to feel included."}
+    },
+    discuss:"Can a computer know who needs friendship? What information would it miss?"
+  },
+  {
+    title:"Prize for the art competition",
+    text:"There is 1 prize to give. Three students entered the school art competition.",
+    chars:[{emoji:"🎨",name:"Kai",detail:"Talented, finished quickly"},{emoji:"✏️",name:"Lea",detail:"Spent weeks practising"},{emoji:"🖼️",name:"Max",detail:"First time trying art"}],
+    total:1,
+    rules:{
+      equal:{dist:["Shared","Shared","Shared"],note:"Everyone shares the prize. No one feels left out, but does it reward quality or effort?"},
+      need:{dist:["No","No","Yes"],note:"Max gets it to encourage new artists. But Lea practised for weeks and Kai's work may be the best."},
+      effort:{dist:["No","Yes","No"],note:"Lea wins because she tried hardest. But Kai's art might be better, and Max could be discouraged."}
+    },
+    discuss:"If an AI judged art, what would it measure? Can it see effort?"
+  }
+];
+
+let cur=0,shuffled=[];
+function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b}
+
+function start(){
+  cur=0;shuffled=shuffle(scenarios);
+  document.getElementById('resultsArea').classList.add('hidden');
+  document.getElementById('gameArea').classList.remove('hidden');
+  show();
+}
+
+function show(){
+  const s=shuffled[cur],t=shuffled.length;
+  document.getElementById('pFill').style.width=`${(cur/t)*100}%`;
+  document.getElementById('pText').textContent=`${cur}/${t}`;
+  let charsHTML=s.chars.map(c=>`<div class="character"><div class="emoji">${c.emoji}</div><div class="name">${c.name}</div><div class="detail">${c.detail}</div></div>`).join('');
+  document.getElementById('gameArea').innerHTML=`
+    <div class="scenario-card">
+      <div class="scenario-label">Scenario ${cur+1} of ${t}</div>
+      <div class="scenario-box"><div class="scenario-text">${s.text}</div></div>
+      <div class="characters">${charsHTML}</div>
+      <div class="prompt">Which rule should AI use?</div>
+      <div class="rule-buttons">
+        <button class="rule-btn btn-equal" onclick="pick('equal')"><span class="icon">⚖️</span> Same for everyone (equal share)</button>
+        <button class="rule-btn btn-need" onclick="pick('need')"><span class="icon">💛</span> More for whoever needs it most</button>
+        <button class="rule-btn btn-effort" onclick="pick('effort')"><span class="icon">💪</span> More for whoever tried hardest</button>
+      </div>
+      <div class="outcome" id="outcome"></div>
+    </div>`;
+}
+
+function pick(rule){
+  const s=shuffled[cur],r=s.rules[rule];
+  document.querySelectorAll('.rule-btn').forEach(b=>{b.disabled=true;if(b.classList.contains('btn-'+rule))b.classList.add('selected')});
+  let resultHTML=s.chars.map((c,i)=>`<div class="outcome-char"><div>${c.emoji} ${c.name}</div><div class="gets">${r.dist[i]}</div></div>`).join('');
+  const o=document.getElementById('outcome');
+  o.classList.add('show');
+  o.innerHTML=`
+    <div class="outcome-title">With this rule:</div>
+    <div class="outcome-result">${resultHTML}</div>
+    <div class="outcome-text">${r.note}</div>
+    <div class="discuss-box"><p>💬 ${s.discuss}</p></div>
+    <button class="next-btn" onclick="next()">${cur<shuffled.length-1?'Next scenario →':'See what I learned →'}</button>`;
+}
+
+function next(){
+  cur++;
+  if(cur>=shuffled.length)showResults();
+  else show();
+}
+
+function showResults(){
+  const t=shuffled.length;
+  document.getElementById('pFill').style.width='100%';
+  document.getElementById('pText').textContent=`${t}/${t}`;
+  document.getElementById('gameArea').classList.add('hidden');
+  document.getElementById('resultsArea').classList.remove('hidden');
+  document.getElementById('resultsArea').innerHTML=`
+    <div class="results-card">
+      <div style="font-size:3rem;margin-bottom:12px">⚖️</div>
+      <div class="results-title">You explored ${t} fairness scenarios!</div>
+      <div class="results-msg">There was no single right answer. Every rule led to a different outcome. That is exactly the point: AI can follow a rule, but people must choose which rule is fair for each situation.</div>
+      <button class="play-again" onclick="start()">Try again with different choices</button>
+    </div>
+    <div class="tip-box">
+      <h3>Remember</h3>
+      <p>AI can apply a rule very well. But people decide which rule is fair, what matters most, and how context should change a decision. Equal is not always the same as fair!</p>
+    </div>`;
+}
+start();
+</script>
+</body>
+</html>

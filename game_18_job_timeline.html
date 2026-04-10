@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Job Evolution Timeline – Card 18</title>
+<style>
+  :root{--bg:#FFF8EE;--orange:#E8722A;--green:#2D6A4F;--amber:#F4C542;--dark:#1A1A2E;--slate:#5C5C7A;--light-o:#FDE8D0;--light-g:#EBF5EE;--white:#fff}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--dark);font-family:'Segoe UI',Arial,sans-serif;min-height:100vh;padding:16px}
+  h1{color:var(--orange);font-size:1.4rem;margin-bottom:4px}
+  .badge{background:var(--light-o);color:var(--orange);font-family:monospace;font-size:.75rem;padding:3px 10px;border-radius:20px;display:inline-block;margin-bottom:12px}
+  .card{background:var(--white);border-radius:12px;padding:18px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,.07)}
+  .label{font-family:monospace;font-size:.75rem;color:var(--orange);font-weight:700;margin-bottom:8px;text-transform:uppercase}
+  .job-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+  .job-btn{border:2px solid #ddd;border-radius:10px;padding:12px 8px;text-align:center;cursor:pointer;background:var(--white);transition:.2s}
+  .job-btn:hover{border-color:var(--orange);background:var(--light-o)}
+  .job-btn.active{border-color:var(--orange);background:var(--light-o)}
+  .job-btn .icon{font-size:1.6rem;display:block;margin-bottom:4px}
+  .job-btn .name{font-size:.82rem;font-weight:700}
+  .timeline-wrap{overflow-x:auto;padding-bottom:8px}
+  .timeline{display:flex;gap:0;min-width:600px;align-items:stretch;border-radius:10px;overflow:hidden;margin-bottom:12px}
+  .era{flex:1;padding:12px 8px;display:flex;flex-direction:column;gap:6px}
+  .era-label{font-family:monospace;font-size:.68rem;font-weight:700;text-transform:uppercase;margin-bottom:4px}
+  .era-event{font-size:.75rem;line-height:1.4;padding:4px 6px;border-radius:4px;background:rgba(255,255,255,.3)}
+  .era-bar{height:6px;border-radius:3px;background:rgba(255,255,255,.4);margin-top:4px;transition:width 1s ease}
+  .future-era{border:2px dashed}
+  .impact-chip{display:inline-block;border-radius:4px;font-size:.7rem;font-family:monospace;padding:2px 6px;margin-top:4px}
+  .btn{background:var(--orange);color:#fff;border:none;border-radius:8px;padding:12px 22px;font-size:.9rem;cursor:pointer;font-weight:700;width:100%;transition:.2s;margin-top:8px}
+  .btn:hover{background:#c85e1a}
+  .btn.green{background:var(--green)}
+  .btn.amber{background:var(--amber);color:var(--dark)}
+  textarea{width:100%;border:2px solid #ddd;border-radius:8px;padding:10px;font-size:.88rem;resize:vertical;min-height:70px;font-family:inherit;background:var(--bg);margin-top:6px}
+  textarea:focus{outline:none;border-color:var(--orange)}
+  .selected-info{display:none}
+  .selected-info.show{display:block}
+  .phase{display:none}
+  .phase.active{display:block}
+  .stat-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  .stat-chip{background:var(--light-o);color:var(--orange);border-radius:6px;padding:4px 8px;font-size:.75rem;font-family:monospace}
+  .stat-chip.green{background:var(--light-g);color:var(--green)}
+</style>
+</head>
+<body>
+<div class="badge">LEVEL 2 · CARD 18</div>
+<h1>Job Evolution Timeline</h1>
+<p style="color:var(--slate);font-size:.88rem;margin-bottom:14px">How has technology changed these jobs over 100 years? Then make your own prediction for 2040.</p>
+
+<div class="phase active" id="phase-pick">
+  <div class="card">
+    <div class="label">Choose a Job to Explore</div>
+    <div class="job-grid" id="job-grid"></div>
+  </div>
+</div>
+
+<div class="phase" id="phase-timeline">
+  <div class="card" id="job-header"></div>
+  <div class="card">
+    <div class="label">How This Job Changed</div>
+    <div class="timeline-wrap">
+      <div class="timeline" id="timeline-display"></div>
+    </div>
+    <div id="job-today"></div>
+  </div>
+  <div class="card">
+    <div class="label">AI Impact Assessment (2024)</div>
+    <div id="impact-display"></div>
+  </div>
+  <div class="card">
+    <div class="label">Your 2040 Prediction</div>
+    <p style="font-size:.85rem;color:var(--slate);margin-bottom:8px">Based on what you've seen, write your prediction. Will AI mostly replace this job, mostly change it, or have little effect?</p>
+    <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+      <button class="btn amber" style="flex:1;margin:0" onclick="setPred('replace')">Mostly Replace</button>
+      <button class="btn" style="flex:1;margin:0;background:var(--amber);color:var(--dark)" onclick="setPred('change')">Mostly Change</button>
+      <button class="btn green" style="flex:1;margin:0" onclick="setPred('stable')">Little Effect</button>
+    </div>
+    <textarea id="pred-text" placeholder="Explain your prediction in 2-3 sentences..."></textarea>
+    <button class="btn" onclick="submitPred()">See Expert Prediction →</button>
+  </div>
+  <div class="card" id="expert-card" style="display:none">
+    <div class="label">Expert Prediction for 2040</div>
+    <div id="expert-text" style="font-size:.9rem;line-height:1.5"></div>
+    <div id="expert-nuance" style="font-size:.85rem;color:var(--slate);margin-top:10px;line-height:1.5"></div>
+  </div>
+  <div style="display:flex;gap:8px">
+    <button class="btn green" onclick="goBack()" style="margin-top:0">← Explore Another Job</button>
+  </div>
+</div>
+
+<script>
+const jobs = [
+  {icon:'👨‍⚕️', name:'Doctor', id:'doctor',
+   eras:[
+     {label:'1920s', bg:'#FDE8D0', txt:'#E8722A', events:['Hand-written notes','Physical examination only','No imaging technology','Learned from books + teachers']},
+     {label:'1970s', bg:'#FFF3E0', txt:'#B8651A', events:['X-rays and MRI introduced','Electronic record-keeping begins','Lab tests via machines','Computer-assisted diagnosis early']},
+     {label:'2000s', bg:'#FFF8EE', txt:'#5C5C7A', events:['Electronic health records','Internet-based research','Robotic surgery assistants','Telemedicine experiments']},
+     {label:'2024', bg:'#EBF5EE', txt:'#2D6A4F', events:['AI reads radiology scans','Predictive health models','Remote monitoring devices','AI drug discovery'], future:false},
+     {label:'2040?', bg:'#E0F5EE', txt:'#1A5C3A', events:['AI diagnosis assistants?','Personalised treatment AI?','Virtual health consultations?','Fewer routine visits?'], future:true},
+   ],
+   today:"Doctors today use AI tools to help analyse medical images, predict patient risks, and find relevant research. AI assistants handle more and more of the 'information processing' work.",
+   impact:{replace:25, change:70, stable:5, label:'HIGH CHANGE, LOW REPLACEMENT'},
+   impactNote:"Diagnosis and treatment planning will increasingly involve AI collaboration. But the human doctor — for judgment, empathy, complex cases, patient relationship — remains essential.",
+   expertPred:"Doctors in 2040 will likely work alongside AI diagnostic partners that handle pattern-recognition (reading scans, flagging risks). The job will change significantly but not disappear.",
+   nuance:"The parts most at risk: reading routine scans, processing test results, writing standard reports. The parts most protected: complex diagnosis, patient communication, ethical decisions, rare cases."},
+  {icon:'👩‍🍳', name:'Chef', id:'chef',
+   eras:[
+     {label:'1920s', bg:'#FDE8D0', txt:'#E8722A', events:['Coal and wood stoves','All preparation by hand','Recipes from memory/paper','Local seasonal ingredients only']},
+     {label:'1970s', bg:'#FFF3E0', txt:'#B8651A', events:['Gas/electric ovens standard','Industrial food processors','Printed recipe books','Refrigeration widespread']},
+     {label:'2000s', bg:'#FFF8EE', txt:'#5C5C7A', events:['Online recipe databases','Delivery platforms emerge','Molecular gastronomy','Kitchen automation in factories']},
+     {label:'2024', bg:'#EBF5EE', txt:'#2D6A4F', events:['AI recipe generators','Robot arms in factory kitchens','Food waste AI tools','Delivery algorithm optimisation'], future:false},
+     {label:'2040?', bg:'#E0F5EE', txt:'#1A5C3A', events:['Fully automated fast food?','AI-personalised menus?','Robot sous-chefs?','Creative chef as premium?'], future:true},
+   ],
+   today:"Factory food production is increasingly automated. AI tools help with inventory, waste reduction, and recipe development. But skilled restaurant cooking remains highly human.",
+   impact:{replace:30, change:55, stable:15, label:'MEDIUM CHANGE'},
+   impactNote:"Mass food production will automate further. Creative and high-skill cooking will remain human-dominated. The middle ground — standard restaurant cooking — faces the most uncertainty.",
+   expertPred:"By 2040, fast food and mass catering will be largely automated. Restaurant cooking will split: fully automated cheap options vs. premium human-crafted experiences.",
+   nuance:"The most replaceable aspects: repetitive prep work, standard recipes at scale, food assembly. Most protected: creative development, cultural knowledge, hospitality, sensory judgment."},
+  {icon:'✏️', name:'Teacher', id:'teacher',
+   eras:[
+     {label:'1920s', bg:'#FDE8D0', txt:'#E8722A', events:['Chalk and blackboard','Single-room schoolhouses','Rote memorisation focus','Textbooks scarce']},
+     {label:'1970s', bg:'#FFF3E0', txt:'#B8651A', events:['Television in classrooms','Projectors and slides','Standardised testing grows','Specialised subjects emerge']},
+     {label:'2000s', bg:'#FFF8EE', txt:'#5C5C7A', events:['Interactive whiteboards','Computer labs in schools','Online learning platforms begin','Email with parents']},
+     {label:'2024', bg:'#EBF5EE', txt:'#2D6A4F', events:['AI tutoring tools (Khan Academy AI)','Automated marking software','Video lectures globally accessible','AI lesson planning assistants'], future:false},
+     {label:'2040?', bg:'#E0F5EE', txt:'#1A5C3A', events:['Personalised AI curricula?','Teacher as mentor/coach?','Fewer traditional lessons?','AI for admin + marking?'], future:true},
+   ],
+   today:"AI tutors can now personalise learning and provide instant feedback. Most admin tasks can be partly automated. But teaching involves human development, motivation, and relationship — difficult to automate.",
+   impact:{replace:10, change:80, stable:10, label:'HIGH CHANGE, LOW REPLACEMENT'},
+   impactNote:"Teaching will change dramatically — AI handling content delivery and marking — but the human role in motivation, mentoring, and social development will remain central.",
+   expertPred:"Teachers in 2040 will likely spend far less time on content delivery and marking, and much more time on mentoring, facilitating discussion, and supporting individual student development.",
+   nuance:"AI can teach content. It cannot build the trusted relationship between a student and adult that drives real learning, confidence, and wellbeing."},
+  {icon:'📰', name:'Journalist', id:'journalist',
+   eras:[
+     {label:'1920s', bg:'#FDE8D0', txt:'#E8722A', events:['Typewriters','Wire telegraph news','Print only','Days to publish']},
+     {label:'1970s', bg:'#FFF3E0', txt:'#B8651A', events:['Television journalism grows','Word processors','Investigative journalism peaks','24hr radio news']},
+     {label:'2000s', bg:'#FFF8EE', txt:'#5C5C7A', events:['Online news sites','Blogs and citizen journalism','Real-time breaking news','Advertising revenue falls']},
+     {label:'2024', bg:'#EBF5EE', txt:'#2D6A4F', events:['AI writes financial reports','Automated sports summaries','AI fact-checking tools','Newsrooms shrinking globally'], future:false},
+     {label:'2040?', bg:'#E0F5EE', txt:'#1A5C3A', events:['AI breaks most routine news?','Investigative humans essential?','AI-generated misinformation?','Human reporters as premium?'], future:true},
+   ],
+   today:"AI already writes thousands of routine news articles daily — financial reports, sports results, weather summaries. Investigative journalism requiring human sources, judgment, and ethics has no AI substitute yet.",
+   impact:{replace:45, change:45, stable:10, label:'HIGH RISK FOR SOME ROLES'},
+   impactNote:"Routine fact-reporting is highly automatable. Investigative journalism, analysis, and local community coverage are more human-dependent — but also less well-funded.",
+   expertPred:"By 2040, most routine news will be AI-generated. The journalist role will split: automated systems for facts, human journalists for investigation, analysis, and accountability.",
+   nuance:"The real threat isn't just job loss — it's that the types of journalism with the most social value (investigation, local reporting) are often the least profitable and most at risk."},
+  {icon:'⚖️', name:'Judge', id:'judge',
+   eras:[
+     {label:'1920s', bg:'#FDE8D0', txt:'#E8722A', events:['Case law from paper records','Oral arguments only','Juries standard','Weeks for verdicts']},
+     {label:'1970s', bg:'#FFF3E0', txt:'#B8651A', events:['Legal databases computerised','Court recording systems','Precedent databases grow','Specialised courts emerge']},
+     {label:'2000s', bg:'#FFF8EE', txt:'#5C5C7A', events:['Electronic case management','Online legal research','Video testimony allowed','Sentencing guideline software']},
+     {label:'2024', bg:'#EBF5EE', txt:'#2D6A4F', events:['AI sentencing tools (COMPAS)','Predictive bail algorithms','Document review AI','AI-assisted case research'], future:false},
+     {label:'2040?', bg:'#E0F5EE', txt:'#1A5C3A', events:['AI for routine cases?','Human judge for complexity?','Algorithmic bias lawsuits?','Justice by algorithm?'], future:true},
+   ],
+   today:"AI tools like COMPAS already suggest bail and sentencing decisions in some US courts. This is highly controversial — studies show some tools carry racial bias from their training data.",
+   impact:{replace:15, change:65, stable:20, label:'HIGH CHANGE, ETHICAL COMPLEXITY'},
+   impactNote:"The judiciary involves ethical judgment and democratic legitimacy that most societies are unwilling to fully automate. But AI tools for research, case sorting, and document review are expanding rapidly.",
+   expertPred:"Judges in 2040 will likely use AI tools extensively for research and document analysis. The decision — especially in serious cases — will remain with humans, partly for legal reasons, partly for democratic ones.",
+   nuance:"AI-in-justice raises the deepest questions: if an AI recommends harsher sentences for certain demographic groups, and the judge follows it — who is responsible?"},
+  {icon:'🎵', name:'Musician', id:'musician',
+   eras:[
+     {label:'1920s', bg:'#FDE8D0', txt:'#E8722A', events:['Live performance only','First commercial recordings','Sheet music standard','No amplification']},
+     {label:'1970s', bg:'#FFF3E0', txt:'#B8651A', events:['Multi-track recording','Synthesisers introduced','Music television rises','Session musicians in demand']},
+     {label:'2000s', bg:'#FFF8EE', txt:'#5C5C7A', events:['Digital audio software (DAWs)','iTunes and streaming begin','Bedroom producers emerge','Auto-tune widespread']},
+     {label:'2024', bg:'#EBF5EE', txt:'#2D6A4F', events:['AI generates full songs','Voice cloning technology','AI masters audio','Streaming pays tiny fractions'], future:false},
+     {label:'2040?', bg:'#E0F5EE', txt:'#1A5C3A', events:['AI-made music dominant?','Human live performance premium?','Personalised AI music?','Creator rights crisis?'], future:true},
+   ],
+   today:"AI can now write songs, generate vocals, produce tracks, and even clone real musicians' voices. The music industry is in genuine crisis about rights and compensation.",
+   impact:{replace:40, change:50, stable:10, label:'HIGH DISRUPTION'},
+   impactNote:"Music creation is being heavily disrupted. Live performance, musical identity, and cultural meaning remain human. But the economics of recorded music are being fundamentally changed.",
+   expertPred:"By 2040, most background and functional music will be AI-generated. Live performance and human musical identity will remain valued — possibly even more so, as a premium scarce experience.",
+   nuance:"The crisis isn't just economic — it's about what music IS. If AI generates perfectly personalised music for your mood, does the art still mean something? This is a genuinely open question."},
+];
+
+let selectedJob = null, userPred = null;
+
+function buildGrid(){
+  document.getElementById('job-grid').innerHTML = jobs.map((j,i) => `
+    <div class="job-btn" onclick="pickJob(${i})">
+      <span class="icon">${j.icon}</span>
+      <span class="name">${j.name}</span>
+    </div>
+  `).join('');
+}
+
+function pickJob(idx){
+  selectedJob = jobs[idx];
+  userPred = null;
+  document.getElementById('phase-pick').classList.remove('active');
+  document.getElementById('phase-timeline').classList.add('active');
+  document.getElementById('expert-card').style.display='none';
+  document.getElementById('pred-text').value='';
+
+  document.getElementById('job-header').innerHTML = `
+    <div style="font-size:2.2rem;margin-bottom:6px">${selectedJob.icon}</div>
+    <div style="font-weight:700;font-size:1.1rem;margin-bottom:4px">${selectedJob.name}</div>
+    <div style="font-size:.85rem;color:var(--slate)">100 years of technological change — and what's coming next.</div>
+  `;
+
+  const tl = document.getElementById('timeline-display');
+  tl.innerHTML = selectedJob.eras.map(era => `
+    <div class="era ${era.future?'future-era':''}" style="background:${era.bg};${era.future?'border-color:'+era.txt+';border-style:dashed':''}">
+      <div class="era-label" style="color:${era.txt}">${era.label}</div>
+      ${era.events.map(e=>`<div class="era-event" style="background:rgba(255,255,255,.5);color:${era.txt}">${e}</div>`).join('')}
+    </div>
+  `).join('');
+
+  document.getElementById('job-today').innerHTML = `
+    <div style="background:var(--light-o);border-radius:8px;padding:12px;margin-top:8px;font-size:.85rem;line-height:1.5">
+      <strong style="font-family:monospace;font-size:.78rem;color:var(--orange)">TODAY (2024):</strong><br>${selectedJob.today}
+    </div>
+  `;
+
+  const imp = selectedJob.impact;
+  document.getElementById('impact-display').innerHTML = `
+    <div class="label">${imp.label}</div>
+    <div style="margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;font-size:.75rem;font-family:monospace;margin-bottom:3px"><span>Replace tasks</span><span>${imp.replace}%</span></div>
+      <div style="background:#e8e0d4;border-radius:6px;height:10px;overflow:hidden"><div style="width:${imp.replace}%;height:10px;background:var(--orange);border-radius:6px;transition:width 1s"></div></div>
+    </div>
+    <div style="margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;font-size:.75rem;font-family:monospace;margin-bottom:3px"><span>Change tasks</span><span>${imp.change}%</span></div>
+      <div style="background:#e8e0d4;border-radius:6px;height:10px;overflow:hidden"><div style="width:${imp.change}%;height:10px;background:var(--amber);border-radius:6px;transition:width 1s"></div></div>
+    </div>
+    <div>
+      <div style="display:flex;justify-content:space-between;font-size:.75rem;font-family:monospace;margin-bottom:3px"><span>Stable tasks</span><span>${imp.stable}%</span></div>
+      <div style="background:#e8e0d4;border-radius:6px;height:10px;overflow:hidden"><div style="width:${imp.stable}%;height:10px;background:var(--green);border-radius:6px;transition:width 1s"></div></div>
+    </div>
+    <p style="font-size:.82rem;color:var(--slate);margin-top:8px">${imp.impactNote}</p>
+  `;
+}
+
+function setPred(type){ userPred = type; }
+
+function submitPred(){
+  if(!selectedJob) return;
+  document.getElementById('expert-card').style.display='block';
+  const ec = document.getElementById('expert-card');
+  document.getElementById('expert-text').innerHTML = '<strong>Expert view:</strong> ' + selectedJob.expertPred;
+  document.getElementById('expert-nuance').innerHTML = '<strong>The nuance:</strong> ' + selectedJob.nuance;
+  ec.scrollIntoView({behavior:'smooth'});
+}
+
+function goBack(){
+  document.getElementById('phase-timeline').classList.remove('active');
+  document.getElementById('phase-pick').classList.add('active');
+}
+
+buildGrid();
+</script>
+</body>
+</html>
