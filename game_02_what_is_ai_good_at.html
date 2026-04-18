@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>What Is AI Good At? – Card 02</title>
+<style>
+  :root{--bg:#F5F3EE;--lav:#7F77DD;--teal:#1D9E75;--dark:#1A2638;--slate:#5C6070;--lav-l:#EAE8F8;--teal-l:#D8F0E8;--white:#fff;--err:#E05050;--err-l:#FFF0F0;--ai:#7F77DD;--human:#1D9E75}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--dark);font-family:'Segoe UI',Arial,sans-serif;min-height:100vh;padding:20px}
+  .badge{background:var(--lav-l);color:var(--lav);font-size:.75rem;font-weight:700;padding:4px 12px;border-radius:20px;display:inline-block;margin-bottom:10px;letter-spacing:1px}
+  h1{color:var(--lav);font-size:1.5rem;margin-bottom:4px}
+  .subtitle{color:var(--slate);font-size:.9rem;margin-bottom:20px}
+  .progress{display:flex;gap:6px;margin-bottom:18px}
+  .dot{width:32px;height:8px;border-radius:4px;background:#ddd;transition:.3s}
+  .dot.active{background:var(--lav)}
+  .dot.done-ai{background:var(--ai)}
+  .dot.done-human{background:var(--human)}
+  .question-card{background:var(--white);border-radius:16px;padding:22px;box-shadow:0 3px 12px rgba(0,0,0,.07);margin-bottom:16px;min-height:120px}
+  .q-num{font-size:.75rem;font-weight:700;color:var(--slate);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px}
+  .q-text{font-size:1.15rem;font-weight:800;color:var(--dark);line-height:1.4;margin-bottom:20px}
+  .choice-row{display:flex;gap:14px;flex-wrap:wrap}
+  .choice-btn{flex:1;min-width:120px;padding:16px 12px;border-radius:12px;border:2.5px solid #ddd;background:var(--bg);cursor:pointer;font-size:1rem;font-weight:800;display:flex;flex-direction:column;align-items:center;gap:6px;transition:.2s;color:var(--dark)}
+  .choice-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.12)}
+  .choice-btn.ai-btn:hover:not(:disabled){border-color:var(--ai);background:var(--lav-l);color:var(--ai)}
+  .choice-btn.human-btn:hover:not(:disabled){border-color:var(--human);background:var(--teal-l);color:var(--human)}
+  .choice-btn.correct{border-color:var(--teal);background:var(--teal-l);color:var(--teal)}
+  .choice-btn.wrong{border-color:var(--err);background:var(--err-l);color:var(--err)}
+  .choice-btn:disabled{cursor:not-allowed}
+  .choice-icon{font-size:2rem}
+  .feedback-box{border-radius:10px;padding:12px 16px;font-size:.88rem;line-height:1.5;margin-top:14px;display:none}
+  .feedback-box.show{display:block}
+  .feedback-box.good{background:var(--teal-l);border-left:4px solid var(--teal);color:var(--teal)}
+  .feedback-box.bad{background:var(--err-l);border-left:4px solid var(--err);color:var(--err)}
+  .btn{background:var(--lav);color:#fff;border:none;border-radius:10px;padding:12px 28px;font-size:.95rem;cursor:pointer;font-weight:700;transition:.2s;margin-top:10px}
+  .btn:hover{background:#6560c8}
+  .score-panel{display:none;background:var(--white);border-radius:16px;padding:28px;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.08);margin-top:20px}
+  .score-panel.show{display:block}
+  .score-big{font-size:3.5rem;font-weight:900;color:var(--lav)}
+  .score-sub{color:var(--slate);margin-top:6px;font-size:.95rem;margin-bottom:20px}
+  .breakdown{display:flex;gap:14px;flex-wrap:wrap;margin-top:16px}
+  .breakdown-box{flex:1;min-width:220px;border-radius:12px;padding:14px;text-align:left;font-size:.86rem;line-height:1.7}
+  .breakdown-box.ai-box{background:var(--lav-l);border-left:4px solid var(--ai)}
+  .breakdown-box.human-box{background:var(--teal-l);border-left:4px solid var(--human)}
+  .breakdown-box strong{display:block;margin-bottom:6px;font-size:.95rem}
+  .breakdown-box strong.ai-txt{color:var(--ai)}
+  .breakdown-box strong.human-txt{color:var(--human)}
+  @media(max-width:500px){.choice-row{flex-direction:row}.choice-btn{padding:14px 8px}}
+</style>
+</head>
+<body>
+<div class="badge">BEGINNER · CARD 02</div>
+<h1>What Is AI Good At?</h1>
+<p class="subtitle">For each question, choose who does it better — AI or a Human?</p>
+
+<div class="progress" id="progress"></div>
+<div id="game-area"></div>
+
+<div class="score-panel" id="score-panel">
+  <div class="score-big" id="score-num"></div>
+  <div style="color:var(--lav);font-size:1.05rem;margin-top:4px">out of 8 correct</div>
+  <div class="score-sub" id="score-msg"></div>
+  <div class="breakdown">
+    <div class="breakdown-box ai-box">
+      <strong class="ai-txt">🤖 AI is great when...</strong>
+      Speed counts over understanding<br>
+      Patterns repeat across huge datasets<br>
+      The task is clear and measurable<br>
+      Scale matters (millions of items)
+    </div>
+    <div class="breakdown-box human-box">
+      <strong class="human-txt">🧠 Humans are better when...</strong>
+      Empathy and emotions matter<br>
+      Context and nuance are needed<br>
+      Creativity requires real experience<br>
+      Ethical judgment is involved
+    </div>
+  </div>
+  <button class="btn" onclick="restart()" style="margin-top:20px">Play Again</button>
+</div>
+
+<script>
+const QUESTIONS = [
+  {q:'Who is better at sorting 1 million emails for spam?', correct:'ai', note:'AI can scan millions of emails in seconds using pattern recognition — no human could do this at scale.'},
+  {q:'Who is better at understanding if a friend is sad?', correct:'human', note:'Empathy requires reading body language, tone, and context — something humans do naturally that AI struggles with.'},
+  {q:'Who is better at recognising 10,000 photos of cats?', correct:'ai', note:'Image recognition at massive scale is exactly what AI is built for — it never gets tired of sorting images.'},
+  {q:'Who is better at deciding whether to apologise to someone?', correct:'human', note:'This requires understanding relationships, context, feelings, and social norms — areas where humans excel.'},
+  {q:'Who is better at translating text into 50 languages in 1 second?', correct:'ai', note:'AI language models can translate instantly across hundreds of languages — a task impossible for any single human.'},
+  {q:'Who is better at making a joke that actually makes people laugh?', correct:'human', note:'Real humour requires shared experience, timing, and cultural understanding — AI-generated jokes often miss the mark.'},
+  {q:'Who is better at finding errors in 10,000 lines of code?', correct:'ai', note:'AI code analysis tools can scan entire codebases for bugs in seconds — far faster and more consistent than manual review.'},
+  {q:'Who is better at choosing the right gift for a close friend?', correct:'human', note:'A good gift requires deep personal knowledge and emotional connection — things that AI lacks without that relationship.'},
+];
+
+let current = 0;
+let score = 0;
+let answers = [];
+
+function render() {
+  const prog = document.getElementById('progress');
+  prog.innerHTML = '';
+  QUESTIONS.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot';
+    if (i < current) {
+      d.classList.add(answers[i] === QUESTIONS[i].correct ? 'done-ai' : 'done-human');
+      if (answers[i] === QUESTIONS[i].correct) d.style.background = 'var(--teal)';
+      else d.style.background = 'var(--err)';
+    } else if (i === current) d.classList.add('active');
+    prog.appendChild(d);
+  });
+
+  const area = document.getElementById('game-area');
+  if (current >= QUESTIONS.length) {
+    area.innerHTML = '';
+    showScore();
+    return;
+  }
+  const q = QUESTIONS[current];
+  area.innerHTML = `
+    <div class="question-card">
+      <div class="q-num">Question ${current+1} of ${QUESTIONS.length}</div>
+      <div class="q-text">${q.q}</div>
+      <div class="choice-row">
+        <button class="choice-btn ai-btn" id="btn-ai" onclick="answer('ai')">
+          <span class="choice-icon">🤖</span>
+          <span>AI</span>
+        </button>
+        <button class="choice-btn human-btn" id="btn-human" onclick="answer('human')">
+          <span class="choice-icon">🧠</span>
+          <span>Human</span>
+        </button>
+      </div>
+      <div class="feedback-box" id="feedback"></div>
+      <button class="btn" id="next-btn" onclick="next()" style="display:none">${current < QUESTIONS.length-1 ? 'Next Question →' : 'See Results'}</button>
+    </div>`;
+}
+
+function answer(choice) {
+  const q = QUESTIONS[current];
+  const ok = choice === q.correct;
+  if (ok) score++;
+  answers[current] = choice;
+  document.getElementById('btn-ai').disabled = true;
+  document.getElementById('btn-human').disabled = true;
+  document.getElementById('btn-ai').className = 'choice-btn ai-btn' + (q.correct==='ai' ? ' correct' : (choice==='ai' ? ' wrong' : ''));
+  document.getElementById('btn-human').className = 'choice-btn human-btn' + (q.correct==='human' ? ' correct' : (choice==='human' ? ' wrong' : ''));
+  const fb = document.getElementById('feedback');
+  fb.textContent = (ok ? '✅ Correct! ' : '❌ Not quite. ') + q.note;
+  fb.className = 'feedback-box show ' + (ok ? 'good' : 'bad');
+  document.getElementById('next-btn').style.display = '';
+  render();
+  // re-disable after re-render since render rebuilds area
+  // we patch: add disabled after render but we rely on the rebuilt answer state shown above
+}
+
+function next() {
+  current++;
+  render();
+}
+
+function showScore() {
+  const panel = document.getElementById('score-panel');
+  panel.classList.add('show');
+  document.getElementById('score-num').textContent = score + '/8';
+  const msgs = [
+    'Keep at it — try again to boost your score!',
+    'A start! Review the breakdown below.',
+    'Getting there! A few tricky ones.',
+    'Good effort! You know the basics.',
+    'Well done! Solid understanding.',
+    'Great job! You\'re thinking like an AI expert.',
+    'Impressive! Nearly perfect.',
+    'Almost perfect! Just one slip.',
+    '🎉 Perfect score! You\'re an AI literacy star!'
+  ];
+  document.getElementById('score-msg').textContent = msgs[score] || '';
+  panel.scrollIntoView({behavior:'smooth'});
+}
+
+function restart() {
+  current = 0; score = 0; answers = [];
+  document.getElementById('score-panel').classList.remove('show');
+  render();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+render();
+</script>
+</body>
+</html>
