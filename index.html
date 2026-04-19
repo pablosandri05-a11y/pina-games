@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pina AI Literacy Cards</title>
+<style>
+/* ── RESET & BASE ── */
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F5F3EE;
+  --white:#fff;
+  --dark:#1A2638;
+  --slate:#5C6070;
+  --lav:#7F77DD;
+  --lav-l:#EAE8F8;
+  --lav-d:#5D4F85;
+  --orange:#C4622D;
+  --orange-l:#FAEEE6;
+  --orange-d:#9E4A1E;
+  --teal:#00B4A6;
+  --teal-l:#D8F6F4;
+  --teal-d:#007A70;
+  --radius:14px;
+  --shadow:0 3px 14px rgba(0,0,0,.09);
+}
+body{background:var(--bg);color:var(--dark);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;line-height:1.5;min-height:100vh}
+
+/* ── HEADER ── */
+.site-header{background:var(--dark);color:var(--white);padding:48px 24px 40px;text-align:center}
+.site-header h1{font-size:clamp(1.8rem,5vw,3rem);font-weight:900;letter-spacing:-.5px;margin-bottom:12px}
+.site-header h1 span{color:var(--lav)}
+.site-header .lead{font-size:clamp(.9rem,2.5vw,1.15rem);color:rgba(255,255,255,.75);max-width:540px;margin:0 auto 18px}
+.stats-row{display:flex;justify-content:center;flex-wrap:wrap;gap:8px 20px;font-size:.85rem;color:rgba(255,255,255,.55);font-weight:600;letter-spacing:.5px}
+.stats-row span::before{content:"· ";color:var(--lav)}
+.stats-row span:first-child::before{content:""}
+
+/* ── LEVEL SECTIONS ── */
+.level-section{padding:48px 20px;max-width:1200px;margin:0 auto}
+.level-heading{display:flex;align-items:center;gap:14px;margin-bottom:28px}
+.level-badge{color:var(--white);font-size:.72rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;padding:6px 16px;border-radius:20px}
+.level-title{font-size:clamp(1.2rem,3vw,1.6rem);font-weight:900;color:var(--dark)}
+.level-sub{font-size:.82rem;color:var(--slate);margin-top:2px}
+
+.beginner .level-badge{background:var(--lav)}
+.intermediate .level-badge{background:var(--orange)}
+.advanced .level-badge{background:var(--teal)}
+
+/* ── CARD GRID ── */
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px}
+
+/* ── FLIP CARD SHELL ── */
+.flip-card{perspective:900px;height:260px;cursor:pointer}
+.flip-card:focus-visible{outline:3px solid var(--lav);outline-offset:3px;border-radius:var(--radius)}
+.flip-inner{position:relative;width:100%;height:100%;transition:transform .45s cubic-bezier(.4,0,.2,1);transform-style:preserve-3d}
+.flip-card.flipped .flip-inner{transform:rotateY(180deg)}
+.flip-front,.flip-back{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:var(--radius);box-shadow:var(--shadow);display:flex;flex-direction:column;padding:18px}
+.flip-back{transform:rotateY(180deg);overflow:hidden}
+
+/* ── FRONT FACE ── */
+.flip-front{background:var(--white)}
+.card-num{font-size:.72rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px}
+.card-title{font-size:1.05rem;font-weight:900;color:var(--dark);line-height:1.25;margin-bottom:8px;flex:1}
+.card-activity{font-size:.76rem;font-weight:700;color:var(--slate);letter-spacing:.5px;margin-bottom:10px}
+.card-meta{display:flex;align-items:center;gap:6px;margin-bottom:14px}
+.card-time{font-size:.75rem;font-weight:700;background:var(--bg);color:var(--slate);padding:3px 10px;border-radius:10px}
+.card-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto}
+
+/* ── BACK FACE ── */
+.flip-back{padding:16px 18px}
+.back-concept{font-size:.83rem;line-height:1.55;color:var(--dark);margin-bottom:12px;flex:1;overflow:hidden}
+.back-questions{list-style:none;margin-bottom:12px}
+.back-questions li{font-size:.76rem;color:var(--slate);padding-left:14px;position:relative;margin-bottom:5px;line-height:1.4}
+.back-questions li::before{content:"?";position:absolute;left:0;font-weight:800}
+.back-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto}
+
+/* ── BUTTONS ── */
+.btn-pdf,.btn-game{font-size:.75rem;font-weight:800;border:none;border-radius:8px;padding:7px 14px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:5px;transition:.15s;white-space:nowrap}
+.btn-pdf{background:var(--bg);color:var(--dark)}
+.btn-pdf:hover{background:#e0ddd6}
+.btn-game{color:var(--white)}
+.btn-game:hover{opacity:.88;transform:translateY(-1px)}
+
+/* ── LEVEL COLOUR THEMING ── */
+.beginner .card-num{color:var(--lav)}
+.beginner .flip-back{background:var(--lav-l)}
+.beginner .back-concept strong{color:var(--lav-d)}
+.beginner .back-questions li::before{color:var(--lav)}
+.beginner .btn-game{background:var(--lav)}
+.beginner .flip-front{border-top:3px solid var(--lav)}
+
+.intermediate .card-num{color:var(--orange)}
+.intermediate .flip-back{background:var(--orange-l)}
+.intermediate .back-concept strong{color:var(--orange-d)}
+.intermediate .back-questions li::before{color:var(--orange)}
+.intermediate .btn-game{background:var(--orange)}
+.intermediate .flip-front{border-top:3px solid var(--orange)}
+
+.advanced .card-num{color:var(--teal-d)}
+.advanced .flip-back{background:var(--teal-l)}
+.advanced .back-concept strong{color:var(--teal-d)}
+.advanced .back-questions li::before{color:var(--teal)}
+.advanced .btn-game{background:var(--teal)}
+.advanced .flip-front{border-top:3px solid var(--teal)}
+
+/* ── DIVIDER ── */
+.section-divider{height:1px;background:rgba(0,0,0,.07);max-width:1200px;margin:0 auto}
+
+/* ── FOOTER ── */
+.site-footer{background:var(--dark);color:rgba(255,255,255,.5);text-align:center;padding:28px 20px;font-size:.8rem;line-height:1.8}
+.site-footer a{color:rgba(255,255,255,.4);text-decoration:none}
+
+/* ── INTRO NOTE ── */
+.intro-note{text-align:center;color:var(--slate);font-size:.82rem;padding:18px 20px 0;font-style:italic}
+
+/* ── RESPONSIVE ── */
+@media(max-width:480px){
+  .flip-card{height:280px}
+  .card-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:340px){
+  .card-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ════════ HEADER ════════ -->
+<header class="site-header">
+  <h1>Pina <span>AI Literacy</span> Cards</h1>
+  <p class="lead">23 printable activity cards for students aged 9–12. No devices needed in class.</p>
+  <div class="stats-row">
+    <span>23 cards</span>
+    <span>3 levels</span>
+    <span>16 interactive games</span>
+    <span>offline-ready</span>
+  </div>
+</header>
+
+<p class="intro-note">Click any card to flip it and see the key concept &amp; discussion questions.</p>
+
+<!-- ════════ BEGINNER ════════ -->
+<section class="level-section beginner">
+  <div class="level-heading">
+    <div class="level-badge">Beginner</div>
+    <div>
+      <div class="level-title">Cards 01–10</div>
+      <div class="level-sub">First encounters with AI concepts · Ages 9–11</div>
+    </div>
+  </div>
+  <div class="card-grid" id="grid-beginner"></div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ════════ INTERMEDIATE ════════ -->
+<section class="level-section intermediate">
+  <div class="level-heading">
+    <div class="level-badge">Intermediate</div>
+    <div>
+      <div class="level-title">Cards 11–18</div>
+      <div class="level-sub">Deeper analysis and ethical reasoning · Ages 10–12</div>
+    </div>
+  </div>
+  <div class="card-grid" id="grid-intermediate"></div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ════════ ADVANCED ════════ -->
+<section class="level-section advanced">
+  <div class="level-heading">
+    <div class="level-badge">Advanced</div>
+    <div>
+      <div class="level-title">Cards 19–23</div>
+      <div class="level-sub">Policy, governance, and critical debate · Ages 11–12</div>
+    </div>
+  </div>
+  <div class="card-grid" id="grid-advanced"></div>
+</section>
+
+<!-- ════════ FOOTER ════════ -->
+<footer class="site-footer">
+  <div>Pina AI Literacy Cards — developed for classroom use in Italian primary schools</div>
+  <div>Hosted on GitHub Pages · Cards print on A4</div>
+</footer>
+
+<script>
+const BASE = 'https://pablosandri05-a11y.github.io/pina-games/';
+
+const CARDS = {
+  beginner: [
+    {
+      n:'01', title:'Where Does AI Live?',
+      activity:'Draw · Discuss · Compare', min:45,
+      pdf:'card_01_where_ai_lives.pdf',
+      game:'game_01_where_ai_lives.html',
+      concept:'AI runs on servers in data centres — not in phones, clouds, or robots. These are real buildings full of specialised hardware that process billions of calculations per second.',
+      questions:['Did the real location match your imagination?','Why do people say AI is "in the cloud"?']
+    },
+    {
+      n:'02', title:'What Is AI Good At?',
+      activity:'Sort · Debate · Decide', min:45,
+      pdf:'card_02_what_is_ai_good_at.pdf',
+      game:'game_02_what_is_ai_good_at.html',
+      concept:'AI is fast at repetitive, pattern-based tasks — sorting, translating, recognising images at scale. Humans are better at empathy, creativity, and understanding context.',
+      questions:['Which tasks surprised you?','Can AI really understand feelings?']
+    },
+    {
+      n:'03', title:'Does AI Think Like a Human?',
+      activity:'Read · Classify · Discuss', min:45,
+      pdf:'card_03_does_ai_think_like_a_human.pdf',
+      game:'game_03_does_ai_think_like_a_human.html',
+      concept:'AI finds patterns in data — it has no feelings, memories, or real understanding. It can sound smart without knowing what words mean.',
+      questions:['Can something sound smart without understanding?','Why does AI get confused by jokes?']
+    },
+    {
+      n:'04', title:'Can AI Make Mistakes?',
+      activity:'Observe · Guess · Reflect', min:45,
+      pdf:'Card_04_Can_AI_Make_Mistakes_pdf.pdf',
+      game:null,
+      concept:'Even a smart system can be wrong when input is unclear, unusual, or outside its training. Speed and confidence do not equal accuracy.',
+      questions:['Which image was hardest to classify?','Should we always trust a fast answer?']
+    },
+    {
+      n:'05', title:'How Does AI Learn?',
+      activity:'Vote · Classify · Discuss', min:45,
+      pdf:'Card_05_How_Does_AI_Learn_pdf.pdf',
+      game:null,
+      concept:'AI learns from examples — the more labelled examples, the better. Limited or unbalanced examples lead to limited or biased learning.',
+      questions:['What helped you decide how to label?','What would AI get wrong with very few examples?']
+    },
+    {
+      n:'06', title:'Should You Trust AI?',
+      activity:'Evaluate · Choose · Justify', min:45,
+      pdf:'Card_06_Should_You_Trust_AI_pdf.pdf',
+      game:null,
+      concept:'AI predicts the most likely words — it does not automatically know whether something is true. Confident-sounding answers can still be wrong.',
+      questions:['Does the most confident answer turn out best?','Which topics need checking independently?']
+    },
+    {
+      n:'07', title:'Who Is Responsible?',
+      activity:'Vote · Debate · Map', min:45,
+      pdf:'Card_07_Who_Is_Responsible_pdf.pdf',
+      game:null,
+      concept:'People remain responsible for designing, using, checking, and correcting AI outputs. Responsibility does not disappear when a machine is involved.',
+      questions:['Can a machine be responsible like a person can?','Who should check AI before it\'s used publicly?']
+    },
+    {
+      n:'08', title:'Can AI Know What Is Fair?',
+      activity:'Share · Discuss · Decide', min:45,
+      pdf:'Card_08_Can_AI_Know_What_Is_Fair_pdf.pdf',
+      game:null,
+      concept:'AI applies a rule consistently — but people decide which rule is fair, and fairness changes with context. Equal treatment is not always the same as fair treatment.',
+      questions:['Is equal always fair?','Can one rule work in every situation?']
+    },
+    {
+      n:'09', title:'Should AI Choose For You?',
+      activity:'Move · Discuss · Decide', min:45,
+      pdf:'Card_09_Should_AI_Choose_For_You_pdf.pdf',
+      game:null,
+      concept:'AI can find patterns and recommend options. But important choices involve feelings, values, and personal responsibility — things AI cannot fully account for.',
+      questions:['When is an AI suggestion useful?','What is the difference between advice and a decision?']
+    },
+    {
+      n:'10', title:'Can AI Keep a Secret?',
+      activity:'Sort · Decide · Reflect', min:45,
+      pdf:'Card_10_Can_AI_Keep_a_Secret_pdf.pdf',
+      game:null,
+      concept:'Not everything should be shared with AI. Private information entered into AI tools may be stored, used for training, or exposed. Protection starts with awareness.',
+      questions:['Which information is safe to share?','What should you do when unsure?']
+    },
+  ],
+  intermediate: [
+    {
+      n:'11', title:'How Do You Talk to AI?',
+      activity:'Compare · Improve · Create', min:45,
+      pdf:'card_11_prompt_trainer.pdf',
+      game:'game_11_prompt_trainer.html',
+      concept:'A better question almost always produces a better answer. Specifying task, context, format, audience, and constraints makes AI outputs far more useful.',
+      questions:['What makes a prompt useful?','Could these skills help you write better essays too?']
+    },
+    {
+      n:'12', title:'Can You Tell If AI Made It?',
+      activity:'Detect · Compare · Justify', min:45,
+      pdf:'card_12_detection_lab.pdf',
+      game:'game_12_detection_lab.html',
+      concept:'Human judgment trained by reading widely is more reliable than detection software. Personal voice, lived experience, and imperfection are hard to fake.',
+      questions:['What does "personal voice" mean to you?','Does it matter if we can tell?']
+    },
+    {
+      n:'13', title:'Does AI Use Energy?',
+      activity:'Rank · Calculate · Compare', min:45,
+      pdf:'card_13_carbon_counter.pdf',
+      game:'game_13_carbon_counter.html',
+      concept:'Training a large AI model can produce as much CO₂ as five transatlantic flights. Every query has an energy cost — invisible but real.',
+      questions:['Should we think about energy before using AI?','Who is responsible — users or companies?']
+    },
+    {
+      n:'14', title:'Where Does AI Bias Come From?',
+      activity:'Sort · Spot · Challenge', min:50,
+      pdf:'card_14_dataset_builder.pdf',
+      game:'game_14_dataset_builder.html',
+      concept:'Bias is a structural outcome of choices made during data collection and labelling — not a bug, but a consequence of who decides what counts as normal.',
+      questions:['Can a dataset ever be fully neutral?','Can we fix bias after a model is trained?']
+    },
+    {
+      n:'15', title:'Can AI Be Creative?',
+      activity:'Compare · Judge · Debate', min:50,
+      pdf:'card_15_creative_turing_test.pdf',
+      game:'game_15_creative_turing_test.html',
+      concept:'AI remixes patterns from millions of existing works. Whether that counts as creativity is genuinely open — it depends on what "creative" means.',
+      questions:['What does "creative" mean to you?','Is remixing the same as creating?']
+    },
+    {
+      n:'16', title:'What Happens to Your Data?',
+      activity:'Trace · Map · Decide', min:50,
+      pdf:'card_16_data_mapper.pdf',
+      game:'game_16_data_mapper.html',
+      concept:'Most AI services are free because user data has commercial value. Understanding the exchange is the first step to making informed choices.',
+      questions:['Is "free" always free?','Would you pay for a private AI tool?']
+    },
+    {
+      n:'17', title:'Should AI Help You Study?',
+      activity:'Place · Debate · Draw the line', min:45,
+      pdf:'card_17_study_smart.pdf',
+      game:'game_17_study_smart.html',
+      concept:'Using AI to understand something is different from using AI to avoid understanding it. Where you draw the line shapes what you actually learn.',
+      questions:['What would you miss if AI did the thinking for you?','Can you still call it your work?']
+    },
+    {
+      n:'18', title:'Will AI Change Jobs?',
+      activity:'Sort · Predict · Imagine', min:50,
+      pdf:'card_18_job_timeline.pdf',
+      game:'game_18_job_timeline.html',
+      concept:'AI is more likely to automate tasks than entire jobs — but transitions affect real people unevenly. New jobs emerge; old ones shrink or change.',
+      questions:['What happens to people whose tasks are automated?','What skills will be most valuable in 10 years?']
+    },
+  ],
+  advanced: [
+    {
+      n:'19', title:'Who Owns AI Art?',
+      activity:'Argue · Judge · Decide', min:55,
+      pdf:'card_19_ownership_simulator.pdf',
+      game:'game_19_ownership_simulator.html',
+      concept:'Copyright currently requires a human author. AI-generated works may not be legally protected — and the training data itself raises unresolved ownership questions.',
+      questions:['Does effort determine ownership?','Should there be a separate legal category for AI-generated work?']
+    },
+    {
+      n:'20', title:'Can AI Tell a Story?',
+      activity:'Read · Feel · Compare', min:55,
+      pdf:'card_20_theatre_machine.pdf',
+      game:'game_20_theatre_machine.html',
+      concept:'AI produces statistically likely language — it has not experienced loss, joy, fear, or love. Whether that limits its stories is a question worth debating.',
+      questions:['Does knowing the source change how you feel about a story?','Can AI be a meaningful co-author?']
+    },
+    {
+      n:'21', title:'Can AI Change What You Believe?',
+      activity:'Detect · Analyse · Resist', min:55,
+      pdf:'card_21_manipulation_detector.pdf',
+      game:'game_21_manipulation_detector.html',
+      concept:'AI can generate convincing content at near-zero cost. At scale, this challenges how we establish trust and shared reality.',
+      questions:['Can you always tell when you\'re being manipulated?','What responsibilities do platforms have?']
+    },
+    {
+      n:'22', title:'Should Schools Allow AI?',
+      activity:'Draft · Negotiate · Vote', min:60,
+      pdf:'card_22_policy_simulator.pdf',
+      game:'game_22_policy_simulator.html',
+      concept:'Policy-making requires holding competing values simultaneously — learning, fairness, access, integrity. There is no clean answer.',
+      questions:['Whose interests should matter most in a school AI policy?','Is a school the right place to decide?']
+    },
+    {
+      n:'23', title:'Who Makes the Rules for AI?',
+      activity:'Negotiate · Represent · Govern', min:60,
+      pdf:'card_23_governance_game.pdf',
+      game:'game_23_governance_game.html',
+      concept:'There is no global AI governance body with enforcement power. Rules emerge from negotiations between nations, companies, and civil society — unevenly.',
+      questions:['Why is global AI governance so difficult?','Who is not at the table — and why does that matter?']
+    },
+  ]
+};
+
+function makeCard(card, level) {
+  const pdfHref = BASE + card.pdf;
+  const gameHref = card.game ? BASE + card.game : null;
+
+  const gameBtn = gameHref
+    ? `<a class="btn-game" href="${gameHref}" target="_blank" rel="noopener" onclick="event.stopPropagation()">▶ Play game</a>`
+    : '';
+
+  const questions = card.questions.map(q => `<li>${q}</li>`).join('');
+
+  return `
+<div class="flip-card" tabindex="0" role="button" aria-label="Card ${card.n}: ${card.title}" onclick="toggleFlip(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleFlip(this)}">
+  <div class="flip-inner">
+    <div class="flip-front">
+      <div class="card-num">${card.n}</div>
+      <div class="card-title">${card.title}</div>
+      <div class="card-activity">${card.activity}</div>
+      <div class="card-meta">
+        <span class="card-time">⏱ ${card.min} min</span>
+      </div>
+      <div class="card-actions">
+        <a class="btn-pdf" href="${pdfHref}" download onclick="event.stopPropagation()">⬇ Download PDF</a>
+        ${gameBtn}
+      </div>
+    </div>
+    <div class="flip-back">
+      <div class="back-concept">${card.concept}</div>
+      <ul class="back-questions">${questions}</ul>
+      <div class="back-actions">
+        <a class="btn-pdf" href="${pdfHref}" download onclick="event.stopPropagation()">⬇ PDF</a>
+        ${gameBtn}
+      </div>
+    </div>
+  </div>
+</div>`;
+}
+
+function toggleFlip(el) {
+  el.classList.toggle('flipped');
+}
+
+['beginner','intermediate','advanced'].forEach(level => {
+  const grid = document.getElementById('grid-' + level);
+  grid.innerHTML = CARDS[level].map(c => makeCard(c, level)).join('');
+});
+</script>
+</body>
+</html>
