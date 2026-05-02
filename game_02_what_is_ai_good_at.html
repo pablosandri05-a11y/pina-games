@@ -135,6 +135,20 @@ function render() {
     </div>`;
 }
 
+function updateDots() {
+  const prog = document.getElementById('progress');
+  prog.innerHTML = '';
+  QUESTIONS.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot';
+    if (i < current) {
+      if (answers[i] === QUESTIONS[i].correct) d.style.background = 'var(--teal)';
+      else d.style.background = 'var(--err)';
+    } else if (i === current) d.classList.add('active');
+    prog.appendChild(d);
+  });
+}
+
 function answer(choice) {
   const q = QUESTIONS[current];
   const ok = choice === q.correct;
@@ -148,9 +162,7 @@ function answer(choice) {
   fb.textContent = (ok ? '✅ Correct! ' : '❌ Not quite. ') + q.note;
   fb.className = 'feedback-box show ' + (ok ? 'good' : 'bad');
   document.getElementById('next-btn').style.display = '';
-  render();
-  // re-disable after re-render since render rebuilds area
-  // we patch: add disabled after render but we rely on the rebuilt answer state shown above
+  updateDots();
 }
 
 function next() {

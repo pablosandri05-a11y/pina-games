@@ -163,6 +163,21 @@ function render() {
     </div>`;
 }
 
+function updateDots() {
+  const prog = document.getElementById('progress');
+  prog.innerHTML = '';
+  SCENARIOS.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot';
+    if (i < current) {
+      const ok = answers[i] === SCENARIOS[i].correct;
+      d.classList.add(ok ? 'done-ok' : 'done-ko');
+    } else if (i === current) d.classList.add('active');
+    prog.appendChild(d);
+  });
+  document.getElementById('step-label').textContent = (current+1) + ' / ' + SCENARIOS.length;
+}
+
 function answer(choice) {
   const s = SCENARIOS[current];
   const ok = choice === s.correct;
@@ -178,7 +193,7 @@ function answer(choice) {
   fb.textContent = (ok ? '✅ Correct! ' : '❌ Not quite. ') + s.note;
   fb.className = 'feedback-box show ' + (ok ? 'good' : 'bad');
   document.getElementById('next-btn').style.display = '';
-  render();
+  updateDots();
 }
 
 function next() { current++; render(); }
