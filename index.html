@@ -1,14 +1,16 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="it">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Printable AI literacy cards with QR-linked HTML games for primary school classrooms, ages 9-12.">
+<meta name="description" content="Carte didattiche stampabili sull'intelligenza artificiale con giochi HTML via QR, pensate per scuola primaria e studenti di 9-12 anni.">
+<meta name="keywords" content="carte didattiche intelligenza artificiale, giochi AI scuola primaria, educazione digitale bambini, AI literacy scuola, carte stampabili AI">
 <meta property="og:title" content="Pina AI Literacy Cards">
 <meta property="og:description" content="Open educational AI literacy cards, printable PDFs, and browser games for students ages 9-12.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://pablosandri05-a11y.github.io/pina-games/">
 <meta property="og:image" content="https://pablosandri05-a11y.github.io/pina-games/card_15_creative_turing_test_front.jpg">
+<meta property="og:locale" content="it_IT">
 <meta name="twitter:card" content="summary_large_image">
 <title>Pina AI Literacy Cards | Printable AI Education Games</title>
 <style>
@@ -201,6 +203,24 @@ body{background:var(--bg);color:var(--dark);font-family:-apple-system,BlinkMacSy
   .features-grid{grid-template-columns:1fr}
 }
 
+/* teacher section */
+.teachers{background:#fff;padding:44px 24px;border-bottom:1px solid rgba(0,0,0,.07)}
+.teachers-inner{max-width:960px;margin:0 auto;display:grid;grid-template-columns:1.1fr .9fr;gap:28px;align-items:start}
+.teachers-kicker{color:var(--lav);font-size:.72rem;font-weight:900;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px}
+.teachers h2{color:var(--dark);font-size:clamp(1.4rem,3vw,2rem);line-height:1.15;margin-bottom:12px}
+.teachers-lead{color:var(--slate);font-size:.96rem;line-height:1.7}
+.teacher-facts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.teacher-fact{background:var(--bg);border:1px solid rgba(0,0,0,.06);border-radius:10px;padding:14px}
+.teacher-label{color:var(--lav-d);font-size:.68rem;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:5px}
+.teacher-value{color:var(--dark);font-size:.88rem;font-weight:700;line-height:1.45}
+.teacher-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+.teacher-cta{background:var(--dark);color:#fff;border-radius:8px;padding:10px 16px;font-size:.82rem;font-weight:900;text-decoration:none}
+.teacher-link{background:var(--lav-l);color:var(--lav-d);border-radius:8px;padding:10px 16px;font-size:.82rem;font-weight:900;text-decoration:none}
+@media(max-width:760px){
+  .teachers-inner{grid-template-columns:1fr}
+  .teacher-facts{grid-template-columns:1fr}
+}
+
 /* ════════════════════════════════════
    HEADER
 ════════════════════════════════════ */
@@ -332,6 +352,39 @@ body{background:var(--bg);color:var(--dark);font-family:-apple-system,BlinkMacSy
   </p>
 
   <div class="hero-arrow" onclick="document.querySelector('.features').scrollIntoView({behavior:'smooth'})">∨</div>
+</section>
+
+<!-- ════════ FOR TEACHERS ════════ -->
+<section class="teachers" id="for-teachers">
+  <div class="teachers-inner">
+    <div>
+      <div class="teachers-kicker">For teachers</div>
+      <h2>Carte AI literacy pronte per una lezione di 45-60 minuti.</h2>
+      <p class="teachers-lead">Stampa una carta, portala in classe e fai scansionare il QR agli studenti: ogni QR apre un gioco HTML standalone, senza login, app o piattaforme esterne.</p>
+      <div class="teacher-actions">
+        <a class="teacher-cta" href="https://github.com/pablosandri05-a11y/pina-games" target="_blank" rel="noopener">Scarica il mazzo completo</a>
+        <a class="teacher-link" href="https://github.com/pablosandri05-a11y/pina-games" target="_blank" rel="noopener">Repository GitHub</a>
+      </div>
+    </div>
+    <div class="teacher-facts" aria-label="Teacher resource details">
+      <div class="teacher-fact">
+        <div class="teacher-label">Eta target</div>
+        <div class="teacher-value">9-12 anni</div>
+      </div>
+      <div class="teacher-fact">
+        <div class="teacher-label">Durata</div>
+        <div class="teacher-value">45-60 minuti per carta</div>
+      </div>
+      <div class="teacher-fact">
+        <div class="teacher-label">Materiali</div>
+        <div class="teacher-value">Carta stampata e telefono per il QR</div>
+      </div>
+      <div class="teacher-fact">
+        <div class="teacher-label">Licenza</div>
+        <div class="teacher-value">Free, open source, Creative Commons</div>
+      </div>
+    </div>
+  </div>
 </section>
 
 <!-- ════════ FEATURES ════════ -->

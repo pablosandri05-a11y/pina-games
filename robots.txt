@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://pablosandri05-a11y.github.io/pina-games/sitemap.xml
