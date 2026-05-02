@@ -18,9 +18,9 @@
   .job-btn.active{border-color:var(--orange);background:var(--light-o)}
   .job-btn .icon{font-size:1.6rem;display:block;margin-bottom:4px}
   .job-btn .name{font-size:.82rem;font-weight:700}
-  .timeline-wrap{overflow-x:auto;padding-bottom:8px}
-  .timeline{display:flex;gap:0;min-width:600px;align-items:stretch;border-radius:10px;overflow:hidden;margin-bottom:12px}
-  .era{flex:1;padding:12px 8px;display:flex;flex-direction:column;gap:6px}
+  .timeline-wrap{padding-bottom:8px}
+  .timeline{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0;align-items:stretch;border-radius:10px;overflow:hidden;margin-bottom:12px}
+  .era{padding:12px 8px;display:flex;flex-direction:column;gap:6px}
   .era-label{font-family:monospace;font-size:.68rem;font-weight:700;text-transform:uppercase;margin-bottom:4px}
   .era-event{font-size:.75rem;line-height:1.4;padding:4px 6px;border-radius:4px;background:rgba(255,255,255,.3)}
   .era-bar{height:6px;border-radius:3px;background:rgba(255,255,255,.4);margin-top:4px;transition:width 1s ease}
@@ -39,6 +39,7 @@
   .stat-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
   .stat-chip{background:var(--light-o);color:var(--orange);border-radius:6px;padding:4px 8px;font-size:.75rem;font-family:monospace}
   .stat-chip.green{background:var(--light-g);color:var(--green)}
+  @media(max-width:640px){.timeline{grid-template-columns:1fr}.era{min-height:auto}}
 </style>
 </head>
 <body>

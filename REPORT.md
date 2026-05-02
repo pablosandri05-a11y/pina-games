@@ -1,3 +1,11 @@
+# Pina Games - Current Report Pointer
+
+This report has been superseded by `REPORT_DEBUG_V2.md`.
+
+See `REPORT_DEBUG_V2.md` for the current full debug pass, including the second round of fixes for broken PDF links, self-contained font loading, mobile timeline layout, and SEO metadata.
+
+---
+
 # Pina Games — Debug Report
 **Date:** 2026-05-02  
 **Scope:** Ad-blocker check · JS error check · Link check · Mobile check  
