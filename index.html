@@ -787,11 +787,21 @@ const revealObserver = new IntersectionObserver((entries) => {
     }
   });
 }, { threshold: 0.08 });
-
 document.querySelectorAll('.flip-card, .feature-card, .teacher-fact, .stat-item').forEach(el => {
   el.classList.add('reveal');
   revealObserver.observe(el);
 });
 </script>
+
+<footer style="text-align:center; padding: 2rem; font-size: 0.85rem; color: #888;">
+  <a href="https://pablosandri05-a11y.github.io/pina-games/">Pina AI Literacy Cards</a> © 2026 by 
+  <a href="https://www.linkedin.com/in/pablo-sandri">Pablo Sandri</a> is licensed under 
+  <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a>
+  <img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" style="max-width:1em;margin-left:.3em;">
+  <img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" style="max-width:1em;margin-left:.2em;">
+  <img src="https://mirrors.creativecommons.org/presskit/icons/nc.svg" style="max-width:1em;margin-left:.2em;">
+  <img src="https://mirrors.creativecommons.org/presskit/icons/sa.svg" style="max-width:1em;margin-left:.2em;">
+</footer>
+
 </body>
 </html>
