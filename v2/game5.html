@@ -1,0 +1,84 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="common.css"><script src="common.js"></script>
+<style>.pool{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
+.an{background:#fff;border:2.5px solid #D5D7E3;border-radius:16px;padding:2px 2px 4px;cursor:pointer;text-align:center;font-family:'Baloo 2';font-weight:700;font-size:13px;position:relative}
+.an svg{width:100%;height:auto;display:block}
+.an.sel{border-color:var(--c);background:var(--t);box-shadow:0 0 0 3px var(--c) inset}
+.an.sel:after{content:'✓';position:absolute;top:2px;right:6px;color:var(--c);font-size:18px}
+.an.fixed{cursor:default}
+.an.ok{border-color:var(--ok);background:#DDF6EB}.an.no{border-color:var(--no);background:#FDE4E4}
+.counter{font-family:'Baloo 2';font-weight:800;font-size:18px;text-align:center;margin-top:8px}
+.map{background:#fff;border-radius:18px;padding:6px;margin-top:10px}.map svg{width:100%;height:auto;display:block}
+.legend{display:flex;gap:14px;justify-content:center;font-size:13px;font-weight:800;margin-top:4px}.legend span{display:flex;align-items:center;gap:5px}
+.why{font-size:15px}.why li{margin:4px 0 4px 18px}</style></head><body>
+<script>
+const CFG={n:5,color:'#0FA36B',tint:'#E2F6EE',title:{en:'How does AI learn?',sl:'Kako se UI uči?'}};
+const C=CFG.color,CATC='#7B4FE0',DOGC='#F2711C';
+// size: 0 small .. 1 big; dark: 0 light .. 1 dark
+const POOL=[
+ {k:'cat',s:.25,d:.05,o:{fur:'#F7F4EE'}},{k:'cat',s:.3,d:.15,o:{fur:'#EFE7DA',eyes:'#E8B04A'}},{k:'cat',s:.3,d:.3,o:{fur:'#CFCBC4',eyes:'#7FB6E8'}},
+ {k:'cat',s:.38,d:.45,o:{fur:'#E8A14F',stripe:'#B86E24'}},{k:'cat',s:.3,d:.95,o:{fur:'#2C2C34',eyes:'#F5C842'}},{k:'cat',s:.55,d:.5,o:{fur:'#9C9A94',stripe:'#6E6C66'}},
+ {k:'dog',s:.85,d:.55,o:{fur:'#B8824E',ear:'#7A4E2A'}},{k:'dog',s:.9,d:.8,o:{fur:'#6B4428',ear:'#3E2412'}},{k:'dog',s:.85,d:.35,o:{fur:'#D2A56E',ear:'#9A6A38'}},
+ {k:'dog',s:.2,d:.08,o:{fur:'#F7F4EE',ear:'#E9E2D6',pointy:true}},{k:'dog',s:.25,d:.9,o:{fur:'#2C2C34',ear:'#15151A'}},{k:'dog',s:.55,d:.4,o:{fur:'#C99A62',ear:'#8A5A2E',spot:'#8A5A2E'}}];
+const TEST=[
+ {k:'cat',s:.32,d:.92,o:{fur:'#2C2C34',eyes:'#7FE07F'}},{k:'dog',s:.18,d:.1,o:{fur:'#FFFFFF',ear:'#EFE7DA',pointy:true}},{k:'cat',s:.3,d:.28,o:{fur:'#D9D6CF'}},
+ {k:'dog',s:.9,d:.6,o:{fur:'#A86F3C',ear:'#6A421F'}},{k:'dog',s:.27,d:.86,o:{fur:'#33302E',ear:'#1A1816'}},{k:'cat',s:.4,d:.45,o:{fur:'#D9904A',stripe:'#A8631F'}}];
+const STARTER=[0,1,2,6,7,8];
+const S={introT:{en:'Train the AI',sl:'Izuri UI'},
+ intro:{en:'This tiny AI learns from examples, like a real one. It is very simple: it only notices how BIG an animal is and how DARK its fur is.',sl:'Ta drobna UI se uči iz primerov, tako kot prava. Je zelo preprosta: opazi le, kako VELIKA je žival in kako TEMNO je njeno krzno.'},
+ r1T:{en:'Round 1: a lazy training set',sl:'1. krog: lena učna zbirka'},
+ r1:{en:'Someone already chose 6 training examples. Look closely. Do you notice anything?',sl:'Nekdo je že izbral 6 učnih primerov. Dobro poglej. Ali kaj opaziš?'},
+ train:{en:'Train and test!',sl:'Izuri in preizkusi!'},
+ testT:{en:'Test results',sl:'Rezultati testa'},
+ testI:{en:'The AI saw 6 new animals it had never seen before.',sl:'UI je videla 6 novih živali, ki jih še ni videla.'},
+ says:{en:'AI says',sl:'UI pravi'},cat:{en:'cat',sl:'mačka'},dog:{en:'dog',sl:'pes'},
+ mapT:{en:'The AI’s map',sl:'Zemljevid UI'},
+ mapI:{en:'Each new animal gets the label of the closest training example.',sl:'Vsaka nova žival dobi oznako najbližjega učnega primera.'},
+ small:{en:'small',sl:'majhna'},big:{en:'big',sl:'velika'},light:{en:'light',sl:'svetla'},dark:{en:'dark',sl:'temna'},
+ train_:{en:'training',sl:'učni'},test_:{en:'test',sl:'testni'},
+ bias1:{en:'All the training cats were light, and all the training dogs were big. So the AI thinks: dark = dog, small and light = cat.',sl:'Vse učne mačke so bile svetle, vsi učni psi pa veliki. Zato UI misli: temno = pes, majhno in svetlo = mačka.'},
+ r2T:{en:'Round 2: you choose!',sl:'2. krog: izbiraš ti!'},
+ r2:{en:'Pick 6 training examples (at least 2 cats and 2 dogs). Try to make them as varied as possible.',sl:'Izberi 6 učnih primerov (vsaj 2 mački in 2 psa). Poskusi, da bodo čim bolj raznoliki.'},
+ chosen:{en:'chosen',sl:'izbranih'},need:{en:'Pick at least 2 cats and 2 dogs.',sl:'Izberi vsaj 2 mački in 2 psa.'},
+ better:{en:'Your AI improved!',sl:'Tvoja UI se je izboljšala!'},same:{en:'Try again with more varied examples?',sl:'Poskusiš znova z bolj raznolikimi primeri?'},
+ tryAgain:{en:'Pick again',sl:'Izberi znova'},
+ r1score:{en:'Round 1',sl:'1. krog'},r2score:{en:'Round 2',sl:'2. krog'},
+ endT:{en:'You trained an AI!',sl:'Izuril(a) si UI!'},
+ bigI:{en:'AI learns from examples. If all the examples look alike, AI gets confused by anything different. More varied examples make a better and fairer AI.',sl:'UI se uči iz primerov. Če so si vsi primeri podobni, jo zmede vse, kar je drugačno. Bolj raznoliki primeri pomenijo boljšo in pravičnejšo UI.'},
+ real:{en:'Real AI uses millions of examples and notices many more things. But the same problem happens: if some people, places or animals are missing from the examples, the AI makes more mistakes about them.',sl:'Prava UI uporablja milijone primerov in opazi veliko več stvari. Toda enaka težava se zgodi tudi tam: če v primerih manjkajo nekateri ljudje, kraji ali živali, se UI pri njih pogosteje moti.'}};
+let sel=[],r1=0,r2=0,round=1;shell(CFG);
+const pic=(a,lab)=>svg(100,104,(a.k==='cat'?cat(50,56,.7+.5*a.s,a.o):dog(50,58,.7+.5*a.s,a.o))+(lab?`<text x="50" y="102" text-anchor="middle" font-family="Baloo 2" font-weight="700" font-size="13" fill="${a.k==='cat'?CATC:DOGC}">${L(S[a.k]).toUpperCase()}</text>`:''));
+const dist=(a,b)=>Math.hypot(a.s-b.s,a.d-b.d);
+function classify(train){return TEST.map(t=>{let best=null,bd=9;train.forEach(i=>{const d=dist(t,POOL[i]);if(d<bd){bd=d;best=i}});return {pred:POOL[best].k,near:best}})}
+function intro(){dots(5,-1);show(`<h1>${L(S.introT)}</h1><p class="lead">${L(S.intro)}</p>
+<div class="art">${svg(300,150,`${[0,1,2].map(i=>`<g transform="translate(${16+i*10},${16+i*10}) rotate(${-8+i*6})"><rect width="64" height="70" rx="8" fill="#fff" stroke="${INK}" stroke-width="2.2"/>${cat(32,40,.66,POOL[i].o)}</g>`).join('')}
+<path d="M118 86 L144 86" stroke="${INK}" stroke-width="3"/><path d="M138 79 L146 86 L138 93" stroke="${INK}" stroke-width="3" fill="none"/>${robot(186,92,1,C,'o')}<g transform="translate(222,46) rotate(6)"><rect width="64" height="70" rx="8" fill="#fff" stroke="${INK}" stroke-width="2.2"/>${cat(32,42,.7,TEST[0].o)}</g><text x="254" y="40" text-anchor="middle" font-family="Baloo 2" font-weight="800" font-size="30" fill="${C}">?</text>`)}</div>
+<div class="spacer"></div><button class="btn" onclick="round1()">${L(COMMON.start)}</button>`)}
+function round1(){round=1;sel=STARTER.slice();dots(5,0);
+ show(`<h2>${L(S.r1T)}</h2><p class="lead">${L(S.r1)}</p><div class="pool">${sel.map(i=>`<div class="an fixed">${pic(POOL[i],1)}</div>`).join('')}</div><div class="spacer"></div><button class="btn" onclick="test()">${L(S.train)}</button>`)}
+function round2(){round=2;sel=[];dots(5,3);renderPick()}
+function renderPick(){const cats=sel.filter(i=>POOL[i].k==='cat').length,dogsN=sel.length-cats,ok=sel.length===6&&cats>=2&&dogsN>=2;
+ show(`<h2>${L(S.r2T)}</h2><p class="lead">${L(S.r2)}</p><div class="pool">${POOL.map((a,i)=>`<div class="an ${sel.includes(i)?'sel':''}" onclick="tog(${i})">${pic(a,1)}</div>`).join('')}</div>
+ <div class="counter">${sel.length}/6 ${L(S.chosen)}</div>${sel.length===6&&!ok?`<div class="fb meh">${L(S.need)}</div>`:''}<button class="btn" ${ok?'':'disabled'} onclick="test()">${L(S.train)}</button>`)}
+function tog(i){const j=sel.indexOf(i);if(j>=0)sel.splice(j,1);else if(sel.length<6)sel.push(i);const y=window.scrollY;renderPick();window.scrollTo(0,y)}
+function mapSvg(res){const X=s=>40+s*250,Y=d=>20+d*190;
+ let g=`<rect x="40" y="20" width="250" height="190" rx="10" fill="#F7F7FB"/>`;
+ g+=`<text x="40" y="228" font-size="12" font-weight="800" fill="${INK}" font-family="Nunito">← ${L(S.small)}</text><text x="290" y="228" text-anchor="end" font-size="12" font-weight="800" fill="${INK}" font-family="Nunito">${L(S.big)} →</text>`;
+ g+=`<text transform="translate(26,24) rotate(90)" font-size="12" font-weight="800" fill="${INK}" font-family="Nunito">${L(S.light)}</text><text transform="translate(26,210) rotate(90)" text-anchor="end" font-size="12" font-weight="800" fill="${INK}" font-family="Nunito">${L(S.dark)}</text>`;
+ res.forEach((r,i)=>{const t=TEST[i],n=POOL[r.near];g+=`<line x1="${X(t.s)}" y1="${Y(t.d)}" x2="${X(n.s)}" y2="${Y(n.d)}" stroke="${r.pred===t.k?'#13A06F':'#E5484D'}" stroke-width="2" stroke-dasharray="4 3"/>`});
+ sel.forEach(i=>{const a=POOL[i];g+=`<circle cx="${X(a.s)}" cy="${Y(a.d)}" r="9" fill="${a.k==='cat'?CATC:DOGC}" stroke="#fff" stroke-width="2"/>`});
+ TEST.forEach((t,i)=>{g+=`<rect x="${X(t.s)-9}" y="${Y(t.d)-9}" width="18" height="18" rx="4" fill="#fff" stroke="${t.k==='cat'?CATC:DOGC}" stroke-width="3"/><text x="${X(t.s)}" y="${Y(t.d)+5}" text-anchor="middle" font-size="12" font-weight="900" font-family="Nunito" fill="${INK}">${i+1}</text>`});
+ return svg(300,236,g)}
+function test(){const res=classify(sel);const sc=res.filter((r,i)=>r.pred===TEST[i].k).length;if(round===1)r1=sc;else r2=sc;dots(5,round===1?1:4);
+ const lines=res.map((r,i)=>`<div class="an fixed ${r.pred===TEST[i].k?'ok':'no'}">${pic(TEST[i])}<span style="color:${r.pred==='cat'?CATC:DOGC}">${i+1}. ${L(S.says)}: ${L(S[r.pred])}</span></div>`).join('');
+ show(`<h2>${L(S.testT)}</h2><p class="lead">${L(S.testI)}</p><div class="pool" style="grid-template-columns:repeat(3,1fr)">${lines}</div><div class="score">${sc}/6</div>
+ ${round===1?`<button class="btn" onclick="map1()">${L(COMMON.next)}</button>`:`<div class="fb ${sc>r1?'good':'meh'}"><b>${L(sc>r1?S.better:S.same)}</b>${L(S.r1score)}: ${r1}/6 → ${L(S.r2score)}: ${sc}/6</div>
+ <div class="map">${mapSvg(res)}<div class="legend"><span><svg width="14" height="14"><circle cx="7" cy="7" r="6" fill="${CATC}"/></svg>${L(S.train_)} ${L(S.cat)}</span><span><svg width="14" height="14"><circle cx="7" cy="7" r="6" fill="${DOGC}"/></svg>${L(S.train_)} ${L(S.dog)}</span><span><svg width="14" height="14"><rect x="1" y="1" width="12" height="12" rx="3" fill="#fff" stroke="${INK}" stroke-width="2"/></svg>${L(S.test_)}</span></div></div>
+ <button class="btn ghost" onclick="round2()">${L(S.tryAgain)}</button><button class="btn" onclick="end()">${L(COMMON.finish)}</button>`}`);
+ if(sc===6)confetti()}
+function map1(){dots(5,2);const res=classify(sel);
+ show(`<h2>${L(S.mapT)}</h2><p class="lead">${L(S.mapI)}</p><div class="map">${mapSvg(res)}<div class="legend"><span><svg width="14" height="14"><circle cx="7" cy="7" r="6" fill="${CATC}"/></svg>${L(S.train_)} ${L(S.cat)}</span><span><svg width="14" height="14"><circle cx="7" cy="7" r="6" fill="${DOGC}"/></svg>${L(S.train_)} ${L(S.dog)}</span><span><svg width="14" height="14"><rect x="1" y="1" width="12" height="12" rx="3" fill="#fff" stroke="${INK}" stroke-width="2"/></svg>${L(S.test_)}</span></div></div>
+ <div class="fb bad">${L(S.bias1)}</div><button class="btn" onclick="round2()">${L(S.r2T)}</button>`)}
+function end(){dots(5,5);confetti();show(`<h1>${L(S.endT)}</h1><div class="choices two"><div class="box" style="text-align:center"><span class="tag">${L(S.r1score)}</span><div class="score" style="font-size:44px">${r1}/6</div></div><div class="box" style="text-align:center"><span class="tag">${L(S.r2score)}</span><div class="score" style="font-size:44px">${r2}/6</div></div></div>
+${bigIdea(S.bigI)}<div class="box">${L(S.real)}</div><button class="btn ghost" onclick="location.reload()">${L(COMMON.again)}</button>`)}
+intro();
+</script></body></html>

@@ -1,0 +1,109 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="common.css"><script src="common.js"></script>
+<style>
+.stops{display:grid;gap:10px;margin-top:10px}
+.stop{display:flex;align-items:center;gap:12px;background:#fff;border:2.5px solid var(--ink);border-radius:18px;padding:8px 12px;cursor:pointer;box-shadow:0 4px 0 #CFD1DE;font-weight:700;font-size:17px;line-height:1.2;text-align:left}
+.stop svg{width:64px;height:48px;flex:none}
+.stop .n{font-family:'Baloo 2';font-weight:800;font-size:22px;color:var(--c);width:24px;flex:none;text-align:center}
+.stop.done{background:var(--t);border-color:var(--c);box-shadow:none;cursor:default}
+.road{position:relative}
+.road svg{width:100%;height:auto;display:block}
+.timer{font-family:'Baloo 2';font-weight:800;font-size:28px;color:var(--c);text-align:center}
+.tf{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+</style></head><body>
+<script>
+const CFG={n:1,color:'#2F7BEA',tint:'#E7F0FD',title:{en:'Where does AI live?',sl:'Kje živi UI?'}};
+const S={
+ introT:{en:'Follow a question!',sl:'Sledi vprašanju!'},
+ intro:{en:'When you ask an AI something, your question goes on a trip. Can you work out where it goes?',sl:'Ko UI nekaj vprašaš, se tvoje vprašanje odpravi na pot. Ugotoviš, kam gre?'},
+ pickT:{en:'Pick a question',sl:'Izberi vprašanje'},
+ qs:[{en:'Why is the sky blue?',sl:'Zakaj je nebo modro?'},{en:'How tall is a giraffe?',sl:'Kako visoka je žirafa?'},{en:'Tell me a joke about cats!',sl:'Povej mi šalo o mačkah!'}],
+ orderT:{en:'Put the trip in order',sl:'Razvrsti pot po vrsti'},
+ order:{en:'Tap the stops in the right order, from 1 to 5.',sl:'Tapni postaje v pravem vrstnem redu, od 1 do 5.'},
+ wrong:{en:'Not yet! Think: what happens first?',sl:'Še ne! Pomisli: kaj se zgodi najprej?'},
+ stops:[
+  {en:'You type your question on a phone',sl:'Vprašanje napišeš v telefon'},
+  {en:'The phone sends it through Wi-Fi to the internet',sl:'Telefon ga po wifiju pošlje v internet'},
+  {en:'It races through cables, even under the sea',sl:'Potuje po kablih, celo pod morjem'},
+  {en:'A data centre: thousands of computers find an answer',sl:'Podatkovni center: na tisoče računalnikov najde odgovor'},
+  {en:'The answer travels all the way back to you',sl:'Odgovor pripotuje vse do tebe'}],
+ facts:[
+  {en:'Your phone is only the door. It does not hold the big AI.',sl:'Telefon so le vrata. Velike UI v njem ni.'},
+  {en:'Wi-Fi turns your question into invisible radio waves.',sl:'Wifi spremeni tvoje vprašanje v nevidne radijske valove.'},
+  {en:'Huge cables lie on the sea floor and connect the continents.',sl:'Ogromni kabli ležijo na morskem dnu in povezujejo celine.'},
+  {en:'This is where AI really lives: in big buildings full of computers.',sl:'Tukaj UI zares živi: v velikih stavbah, polnih računalnikov.'},
+  {en:'The whole trip often takes less than a few seconds!',sl:'Celotna pot pogosto traja manj kot nekaj sekund!'}],
+ watchT:{en:'Watch the trip',sl:'Opazuj pot'},
+ seconds:{en:'seconds',sl:'sekund'},
+ quizT:{en:'True or false?',sl:'Drži ali ne drži?'},
+ T:{en:'True',sl:'Drži'},F:{en:'False',sl:'Ne drži'},
+ quiz:[
+  [{en:'AI lives up in the sky, inside the clouds.',sl:'UI živi visoko na nebu, v oblakih.'},false,{en:'“The cloud” is just a nickname. The computers are in real buildings on the ground.',sl:'»Oblak« je samo vzdevek. Računalniki so v resničnih stavbah na tleh.'}],
+  [{en:'A data centre is a building full of computers.',sl:'Podatkovni center je stavba, polna računalnikov.'},true,{en:'Yes! Some are as big as several football pitches.',sl:'Tako je! Nekateri so veliki kot več nogometnih igrišč.'}],
+  [{en:'Data centres need a lot of electricity and cooling.',sl:'Podatkovni centri potrebujejo veliko elektrike in hlajenja.'},true,{en:'Yes! The computers get hot, so many centres also use water to cool down.',sl:'Tako je! Računalniki se segrejejo, zato veliko centrov za hlajenje porabi tudi vodo.'}],
+  [{en:'Big chatbots do all their thinking inside your phone.',sl:'Veliki klepetalni roboti vse razmišljanje opravijo v tvojem telefonu.'},false,{en:'Your phone sends the question away. The heavy work happens in a data centre.',sl:'Telefon vprašanje pošlje naprej. Težko delo opravi podatkovni center.'}]],
+ right:{en:'Correct!',sl:'Pravilno!'},nope:{en:'Not quite.',sl:'Ne čisto.'},
+ endT:{en:'You followed the trip!',sl:'Sledil(a) si poti!'},
+ big:{en:'AI lives in data centres: huge buildings full of computers. Your question travels there through the internet, and the answer comes back in seconds.',sl:'UI živi v podatkovnih centrih: ogromnih stavbah, polnih računalnikov. Tvoje vprašanje potuje tja po internetu, odgovor pa se vrne v nekaj sekundah.'},
+ answers:[{en:'The sky looks blue because sunlight bounces around in the air, and blue light bounces the most.',sl:'Nebo je modro, ker se sončna svetloba v zraku odbija, modra pa najbolj.'},{en:'A giraffe can be about 5 metres tall, taller than a double-decker bus!',sl:'Žirafa je lahko visoka približno 5 metrov, več kot dvonadstropni avtobus!'},{en:'Why did the cat sit on the computer? To keep an eye on the mouse!',sl:'Zakaj je mačka sedela na računalniku? Da bi pazila na miško!'}],
+ answerT:{en:'The answer is back:',sl:'Odgovor je tu:'}
+};
+const icons=[
+ c=>svg(120,90,`${phone(60,46,1.5,c)}<text x="96" y="30" font-family="Baloo 2" font-weight="800" font-size="22" fill="${c}" text-anchor="middle">?</text>`),
+ c=>svg(120,90,`<g fill="none" stroke="${c}" stroke-width="6" stroke-linecap="round"><path d="M44 56 a22 22 0 0 1 32 0"/><path d="M32 44 a38 38 0 0 1 56 0"/><path d="M20 32 a54 54 0 0 1 80 0"/></g><circle cx="60" cy="66" r="7" fill="${INK}"/>`),
+ c=>svg(120,90,`<rect x="0" y="34" width="120" height="56" fill="#CFE6FB"/><path d="M0 34 q10 -6 20 0 t20 0 t20 0 t20 0 t20 0 t20 0" fill="#CFE6FB" stroke="#5AA6E8" stroke-width="2.5"/><path d="M4 78 C40 60 80 92 116 70" stroke="${INK}" stroke-width="6" fill="none" stroke-linecap="round"/>`),
+ c=>svg(120,90,datacentre(60,58,.95,c)),
+ c=>svg(120,90,`<path d="M100 40 A40 30 0 1 1 30 22" stroke="${INK}" stroke-width="3" fill="none" stroke-dasharray="3 6" stroke-linecap="round"/><path d="M24 12 L34 22 L22 28" stroke="${INK}" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>${phone(60,52,1.05,c)}`)];
+let st={q:0,next:0,quiz:0,score:0};
+const C=CFG.color, STEPS=5;
+shell(CFG);
+
+function intro(){dots(STEPS,0);show(`<h1>${L(S.introT)}</h1><p class="lead">${L(S.intro)}</p>
+<div class="art">${svg(300,170,`${blinkCSS}${kid(60,86,1,SKIN[1],C,INK,'phone')}${phone(82,102,.55,C)}
+<path d="M98 100 C130 130 150 50 190 80" stroke="${INK}" stroke-width="2.4" stroke-dasharray="2 7" stroke-linecap="round" fill="none"/>${cloud(235,70,1)}<text x="235" y="86" text-anchor="middle" font-family="Baloo 2" font-weight="800" font-size="44" fill="${C}">?</text>${sparkle(30,26,1,C)}${sparkle(150,26,.7,INK)}`)}</div>
+<div class="spacer"></div><button class="btn" onclick="pick()">${L(COMMON.start)}</button>`)}
+
+function pick(){dots(STEPS,1);show(`<h2>${L(S.pickT)}</h2><div class="choices">${S.qs.map((q,i)=>`<button class="choice" onclick="st.q=${i};order()">${esc(L(q))}</button>`).join('')}</div>`)}
+
+let deck=[];
+function order(){dots(STEPS,2);st.next=0;deck=shuffle([0,1,2,3,4]);renderOrder()}
+function renderOrder(msg=''){
+ show(`<h2>${L(S.orderT)}</h2><p class="lead">${L(S.order)}</p><div class="stops">${deck.map(i=>{
+  const done=i<st.next;return `<button class="stop ${done?'done':''}" id="s${i}" onclick="tapStop(${i})"><span class="n">${done?i+1:''}</span>${icons[i](C)}<span>${esc(L(S.stops[i]))}</span></button>`}).join('')}</div>
+  <div id="msg">${msg}</div>`)}
+function tapStop(i){
+ if(i<st.next)return;
+ if(i===st.next){st.next++; if(st.next===5){confetti();setTimeout(watch,700)} renderOrder()}
+ else{const b=$('#s'+i);b.classList.add('shake');setTimeout(()=>b.classList.remove('shake'),400);$('#msg').innerHTML=`<div class="fb meh"><b>${L(S.wrong)}</b></div>`}
+}
+
+let wk=0,timer=null,t0=0;
+function watch(){dots(STEPS,3);wk=0;t0=performance.now();
+ const P=[[40,140],[105,70],[170,140],[240,70],[300,140]];
+ show(`<h2>${L(S.watchT)}</h2><div class="art road">${svg(340,190,`${blinkCSS}<path id="rd" d="M40 140 C70 40 140 40 105 70 S150 170 170 140 S220 40 240 70 S280 170 300 140" stroke="${INK}" stroke-width="3" stroke-dasharray="3 8" stroke-linecap="round" fill="none"/>
+ ${P.map((p,i)=>`<g id="w${i}" opacity=".35" transform="translate(${p[0]-30},${p[1]-26})"><svg width="60" height="46" viewBox="0 0 120 90">${icons[i](C).replace(/^<svg[^>]*>|<\/svg>$/g,'')}</svg></g>`).join('')}
+ <circle id="pk" r="9" fill="${C}" stroke="#fff" stroke-width="3" cx="40" cy="140"/>`)}</div>
+ <div class="box" id="fact" style="min-height:96px"></div><div class="spacer"></div><button class="btn" id="nx" onclick="stepWatch()">${L(COMMON.next)}</button>`);
+ stepWatch();
+}
+function stepWatch(){
+ if(wk>=5)return quiz();
+ const P=[[40,140],[105,70],[170,140],[240,70],[300,140]];
+ $('#w'+wk).setAttribute('opacity','1');const pk=$('#pk');pk.setAttribute('cx',P[wk][0]);pk.setAttribute('cy',P[wk][1]-34);pk.style.transition='all .6s';
+ let extra=wk===4?`<div class="bubble" style="margin-top:10px">${esc(L(S.answers[st.q]))}</div>`:'';
+ $('#fact').innerHTML=`<span class="tag">${wk+1}/5</span><h3 style="margin:6px 0 4px">${esc(L(S.stops[wk]))}</h3>${esc(L(S.facts[wk]))}${extra}`;
+ wk++; if(wk===5)$('#nx').textContent=L(COMMON.next)+' →';
+}
+
+function quiz(){dots(STEPS,4);const k=st.quiz;if(k>=S.quiz.length)return end();const [q]=S.quiz[k];
+ show(`<span class="tag">${k+1}/${S.quiz.length}</span><h2>${L(S.quizT)}</h2><div class="task">${esc(L(q))}</div>
+ <div class="tf"><button class="choice" id="bt" onclick="ans(true)">✓ ${L(S.T)}</button><button class="choice" id="bf" onclick="ans(false)">✗ ${L(S.F)}</button></div><div id="fb"></div>`)}
+function ans(v){const [,a,why]=S.quiz[st.quiz];const ok=v===a;if(ok)st.score++;
+ $('#bt').classList.add(a?'ok':'dim');$('#bf').classList.add(a?'dim':'ok');if(!ok)$(v?'#bt':'#bf').classList.replace('dim','no');
+ $('#bt').onclick=$('#bf').onclick=null;
+ $('#fb').innerHTML=`<div class="fb ${ok?'good':'bad'}"><b>${L(ok?S.right:S.nope)}</b>${esc(L(why))}</div><button class="btn" onclick="st.quiz++;quiz()">${L(COMMON.next)}</button>`}
+
+function end(){dots(STEPS,5);confetti();show(`<h1>${L(S.endT)}</h1><div class="score">${st.score}/${S.quiz.length}</div>
+<div class="art">${svg(300,120,`${blinkCSS}${datacentre(150,80,1.1,C)}${sparkle(60,40,1,C)}${sparkle(250,30,.8,INK)}`)}</div>${bigIdea(S.big)}
+<div class="spacer"></div><button class="btn ghost" onclick="st={q:0,next:0,quiz:0,score:0};intro()">${L(COMMON.again)}</button>`)}
+intro();
+</script></body></html>

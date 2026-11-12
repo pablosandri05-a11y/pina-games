@@ -1,0 +1,76 @@
+@font-face{font-family:'Baloo 2';font-weight:500;src:url(fonts/baloo-2-latin-500-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+2013-201E,U+2026,U+2190-21FF,U+2713-2717}
+@font-face{font-family:'Baloo 2';font-weight:600;src:url(fonts/baloo-2-latin-600-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+2013-201E,U+2026,U+2190-21FF,U+2713-2717}
+@font-face{font-family:'Baloo 2';font-weight:700;src:url(fonts/baloo-2-latin-700-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+2013-201E,U+2026,U+2190-21FF,U+2713-2717}
+@font-face{font-family:'Baloo 2';font-weight:800;src:url(fonts/baloo-2-latin-800-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+2013-201E,U+2026,U+2190-21FF,U+2713-2717}
+@font-face{font-family:'Baloo 2';font-weight:500;src:url(fonts/baloo-2-latin-ext-500-normal.woff2) format('woff2');unicode-range:U+0100-024F,U+1E00-1EFF}
+@font-face{font-family:'Baloo 2';font-weight:600;src:url(fonts/baloo-2-latin-ext-600-normal.woff2) format('woff2');unicode-range:U+0100-024F,U+1E00-1EFF}
+@font-face{font-family:'Baloo 2';font-weight:700;src:url(fonts/baloo-2-latin-ext-700-normal.woff2) format('woff2');unicode-range:U+0100-024F,U+1E00-1EFF}
+@font-face{font-family:'Baloo 2';font-weight:800;src:url(fonts/baloo-2-latin-ext-800-normal.woff2) format('woff2');unicode-range:U+0100-024F,U+1E00-1EFF}
+@font-face{font-family:'Nunito';font-weight:400;src:url(fonts/nunito-latin-400-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+2013-201E,U+2026}
+@font-face{font-family:'Nunito';font-weight:600;src:url(fonts/nunito-latin-600-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+2013-201E,U+2026}
+@font-face{font-family:'Nunito';font-weight:700;src:url(fonts/nunito-latin-700-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+2013-201E,U+2026}
+@font-face{font-family:'Nunito';font-weight:800;src:url(fonts/nunito-latin-800-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+2013-201E,U+2026}
+@font-face{font-family:'Nunito';font-weight:400;src:url(fonts/nunito-latin-ext-400-normal.woff2) format('woff2');unicode-range:U+0100-024F,U+1E00-1EFF}
+@font-face{font-family:'Nunito';font-weight:600;src:url(fonts/nunito-latin-ext-600-normal.woff2) format('woff2');unicode-range:U+0100-024F,U+1E00-1EFF}
+@font-face{font-family:'Nunito';font-weight:700;src:url(fonts/nunito-latin-ext-700-normal.woff2) format('woff2');unicode-range:U+0100-024F,U+1E00-1EFF}
+@font-face{font-family:'Nunito';font-weight:800;src:url(fonts/nunito-latin-ext-800-normal.woff2) format('woff2');unicode-range:U+0100-024F,U+1E00-1EFF}
+
+:root{--ink:#1E2340;--muted:#5A5F80;--bg:#F7F7FB;--c:#2F7BEA;--t:#E7F0FD;--ok:#13A06F;--no:#E5484D;--r:22px}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:'Nunito',system-ui,sans-serif;color:var(--ink);background:var(--bg);font-size:17px;line-height:1.45}
+h1,h2,h3,.btn,.pill,.chip{font-family:'Baloo 2','Nunito',sans-serif}
+.wrap{max-width:560px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;padding:14px 16px 28px}
+header.top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.pill{background:var(--c);color:#fff;font-weight:700;font-size:14px;letter-spacing:.05em;padding:3px 12px;border-radius:99px;white-space:nowrap}
+header.top .ttl{font-family:'Baloo 2';font-weight:700;font-size:16px;line-height:1.1;flex:1;color:var(--muted)}
+.lang{display:flex;border:2px solid var(--ink);border-radius:99px;overflow:hidden}
+.lang a{font-family:'Baloo 2';font-weight:700;font-size:13px;padding:2px 10px;color:var(--ink);text-decoration:none}
+.lang a.on{background:var(--ink);color:#fff}
+.dots{display:flex;gap:6px;margin:4px 0 14px}
+.dots i{flex:1;height:6px;border-radius:9px;background:#DCDDE8}
+.dots i.on{background:var(--c)}
+.screen{flex:1;display:flex;flex-direction:column;animation:in .35s ease}
+@keyframes in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+h1{font-size:34px;line-height:1.05;font-weight:800;margin:6px 0 8px}
+h2{font-size:26px;line-height:1.1;font-weight:800;margin:4px 0 8px}
+h3{font-size:19px;font-weight:700;line-height:1.2}
+p.lead{font-size:18px;color:var(--muted);font-weight:600}
+.art{background:var(--t);border-radius:var(--r);padding:8px;margin:14px 0}
+.art svg{display:block;width:100%;height:auto}
+.box{background:#fff;border-radius:var(--r);padding:16px 18px;box-shadow:0 2px 0 #E3E4EE;margin:10px 0}
+.big{background:var(--t);border-radius:var(--r);padding:16px 18px;font-weight:700;margin:12px 0}
+.big small{display:block;font-family:'Baloo 2';font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--c);font-weight:700}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;border:0;border-radius:18px;padding:14px 18px;font-size:20px;font-weight:700;cursor:pointer;background:var(--c);color:#fff;box-shadow:0 4px 0 rgba(0,0,0,.18);transition:transform .08s;text-decoration:none;margin-top:10px}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.18)}
+.btn.ghost{background:#fff;color:var(--ink);border:2.5px solid var(--ink);box-shadow:0 4px 0 #CFD1DE}
+.btn.sm{font-size:16px;padding:10px 14px;border-radius:14px}
+.btn[disabled]{opacity:.35;pointer-events:none}
+.spacer{flex:1}
+.choices{display:grid;gap:10px;margin-top:12px}
+.choices.two{grid-template-columns:1fr 1fr}
+.choice{background:#fff;border:2.5px solid var(--ink);border-radius:18px;padding:12px;font-family:'Baloo 2';font-weight:700;font-size:18px;line-height:1.15;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;box-shadow:0 4px 0 #CFD1DE;color:var(--ink);text-align:center}
+.choice:active{transform:translateY(3px);box-shadow:0 1px 0 #CFD1DE}
+.choice svg{width:58px;height:58px}
+.choice.ok{background:#DDF6EB;border-color:var(--ok)}
+.choice.no{background:#FDE4E4;border-color:var(--no)}
+.choice.dim{opacity:.45}
+.task{background:#fff;border-radius:var(--r);padding:22px 18px;text-align:center;font-family:'Baloo 2';font-weight:700;font-size:25px;line-height:1.15;box-shadow:0 3px 0 #E3E4EE;border:3px solid var(--c);margin:8px 0;animation:pop .3s ease}
+@keyframes pop{from{transform:scale(.9);opacity:0}to{transform:none;opacity:1}}
+.fb{border-radius:18px;padding:14px 16px;margin-top:12px;font-weight:600;animation:in .25s ease}
+.fb b{font-family:'Baloo 2';font-size:20px;display:block}
+.fb.good{background:#DDF6EB}.fb.good b{color:var(--ok)}
+.fb.meh{background:#FFF3D6}.fb.meh b{color:#B7791F}
+.fb.bad{background:#FDE4E4}.fb.bad b{color:var(--no)}
+.score{font-family:'Baloo 2';font-weight:800;font-size:64px;line-height:1;color:var(--c);text-align:center;margin:8px 0}
+.shake{animation:shake .35s}
+@keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.foot{margin-top:22px;font-size:12px;color:#8A8EA8;text-align:center}
+.foot a{color:inherit}
+.confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:9}
+.confetti i{position:absolute;top:-20px;width:10px;height:14px;border-radius:3px;animation:fall 1.6s ease-in forwards}
+@keyframes fall{to{transform:translateY(105vh) rotate(540deg);opacity:.8}}
+.bubble{position:relative;background:#fff;border:2.5px solid var(--ink);border-radius:18px;padding:10px 14px;font-family:'Baloo 2';font-weight:700;font-size:19px;line-height:1.2}
+.meter{height:14px;border-radius:9px;background:#E3E4EE;overflow:hidden;margin-top:6px}
+.meter i{display:block;height:100%;background:var(--c);border-radius:9px;transition:width .9s ease}
+.tag{display:inline-block;font-family:'Baloo 2';font-weight:700;font-size:13px;letter-spacing:.06em;padding:1px 10px;border-radius:99px;background:var(--t);color:var(--c)}

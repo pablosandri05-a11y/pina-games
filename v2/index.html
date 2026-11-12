@@ -1,0 +1,15 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="common.css"><script src="common.js"></script>
+<style>.g{display:flex;align-items:center;gap:12px;background:#fff;border-radius:20px;padding:10px 14px;margin-top:10px;text-decoration:none;color:var(--ink);border-left:8px solid var(--gc);box-shadow:0 3px 0 #E3E4EE}
+.g svg{width:64px;flex:none}.g b{font-family:'Baloo 2';font-size:20px;display:block;line-height:1.1}.g span{font-size:14px;color:var(--muted);font-weight:600}
+.g .n{font-family:'Baloo 2';font-weight:800;font-size:26px;color:var(--gc);width:30px}</style></head><body>
+<script>
+const G=[[1,'#2F7BEA',{en:'Where does AI live?',sl:'Kje živi UI?'},{en:'Follow a question on its trip',sl:'Sledi vprašanju na njegovi poti'}],
+[2,'#F2711C',{en:'What is AI good at?',sl:'V čem je UI dobra?'},{en:'Who does it best?',sl:'Kdo je najboljši?'}],
+[3,'#7B4FE0',{en:'Does AI think like a human?',sl:'Ali UI razmišlja kot človek?'},{en:'Mind or machine?',sl:'Um ali stroj?'}],
+[4,'#E63E62',{en:'Can AI make mistakes?',sl:'Ali se UI lahko zmoti?'},{en:'Mistake Hunter',sl:'Lovec na napake'}],
+[5,'#0FA36B',{en:'How does AI learn?',sl:'Kako se UI uči?'},{en:'Train your own tiny AI',sl:'Izuri svojo drobno UI'}]];
+shell({n:0,color:'#1F2A55',tint:'#ECEEF6',title:{en:'AI Literacy Cards',sl:'Kartice o umetni inteligenci'}});
+document.querySelector('.pill').textContent='PiNA';dots(1,-1);document.querySelector('.foot').innerHTML=esc(L(COMMON.credit));
+show(`<h1>${L({en:'AI Literacy Games',sl:'Igre o umetni inteligenci'})}</h1><p class="lead">${L({en:'Level 1 · Beginner · ages 9–12',sl:'Stopnja 1 · Začetniki · 9–12 let'})}</p>`+
+G.map(([n,c,t,s])=>`<a class="g" style="--gc:${c}" href="game${n}.html?lang=${LANG}#${LANG}"><span class="n">${n}</span>${svg(80,80,robot(40,48,.9,c))}<div><b>${esc(L(t))}</b><span>${esc(L(s))}</span></div></a>`).join(''));
+</script></body></html>

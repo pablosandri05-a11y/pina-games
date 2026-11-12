@@ -1,0 +1,47 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="common.css"><script src="common.js"></script>
+<style>.choices.three{grid-template-columns:1fr 1fr 1fr}.choices.three .choice{font-size:15px;padding:10px 6px}
+.cols{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px}.cols div{background:#fff;border-radius:14px;padding:8px;font-size:13px;line-height:1.25}.cols h3{font-size:14px;color:var(--c);margin-bottom:4px}.cols p{margin-bottom:5px;border-bottom:1px solid #EEE;padding-bottom:4px}</style></head><body>
+<script>
+const CFG={n:2,color:'#F2711C',tint:'#FEEFE4',title:{en:'What is AI good at?',sl:'V čem je UI dobra?'}};
+const C=CFG.color;
+const B=[{en:'AI is great',sl:'UI je odlična'},{en:'A human is better',sl:'Človek je boljši'},{en:'Better together',sl:'Skupaj najbolje'}];
+const ICON=[c=>svg(100,100,robot(50,58,1,c)),c=>svg(100,100,`<path d="M50 80 C10 52 22 18 50 38 C78 18 90 52 50 80Z" fill="${c}" stroke="${INK}" stroke-width="4"/>`),
+ c=>svg(100,100,`${robot(32,60,.62,c)}${kid(70,46,.62,SKIN[0],'#FFC94A','#8A4B22')}`)];
+const TASKS=[
+ [{en:'Sort 10,000 photos by colour',sl:'Razvrsti 10.000 fotografij po barvi'},0,{en:'Fast, repetitive and with lots of data: perfect for AI.',sl:'Hitro, ponavljajoče se in z veliko podatki: kot nalašč za UI.'}],
+ [{en:'Comfort a friend who lost their pet',sl:'Potolaži prijatelja, ki je izgubil ljubljenčka'},1,{en:'Caring needs real feelings and knowing your friend. AI can only copy kind words.',sl:'Skrb potrebuje prava čustva in poznavanje prijatelja. UI lahko le posnema prijazne besede.'}],
+ [{en:'Find a spelling mistake in a long text',sl:'Najdi pravopisno napako v dolgem besedilu'},0,{en:'AI checks every word in a second and never gets tired.',sl:'UI v sekundi preveri vsako besedo in se nikoli ne utrudi.'}],
+ [{en:'Check an X-ray for a broken bone',sl:'Na rentgenski sliki poišči zlomljeno kost'},2,{en:'AI can spot tiny details, but a doctor decides and talks to the patient.',sl:'UI opazi drobne podrobnosti, a odloči zdravnik, ki se tudi pogovori s pacientom.'}],
+ [{en:'Decide what is fair when two friends argue',sl:'Odloči, kaj je pravično, ko se prijatelja prepirata'},1,{en:'Fairness depends on feelings, the story and the people. That needs a human.',sl:'Pravičnost je odvisna od čustev, zgodbe in ljudi. Za to potrebujemo človeka.'}],
+ [{en:'Translate a menu into 5 languages',sl:'Prevedi jedilnik v 5 jezikov'},0,{en:'AI is very good at translating everyday text, very fast.',sl:'UI zelo dobro in zelo hitro prevaja vsakdanja besedila.'}],
+ [{en:'Plan a class trip',sl:'Načrtuj razredni izlet'},2,{en:'AI can find routes and times. People know what the class will enjoy.',sl:'UI najde poti in urnike. Ljudje vemo, kaj bo razred veselilo.'}],
+ [{en:'Invent a brand new playground game',sl:'Izmisli popolnoma novo igro za igrišče'},1,{en:'Truly new ideas come from people who play, test and laugh together.',sl:'Zares nove zamisli pridejo od ljudi, ki se skupaj igrajo, preizkušajo in smejijo.'}],
+ [{en:'Forecast tomorrow’s weather',sl:'Napovej jutrišnje vreme'},2,{en:'AI crunches huge amounts of weather data. Experts check it and warn people.',sl:'UI obdela ogromno vremenskih podatkov. Strokovnjaki jih preverijo in opozorijo ljudi.'}],
+ [{en:'Know when a joke could hurt someone',sl:'Presodi, kdaj bi šala lahko koga prizadela'},1,{en:'This needs empathy and knowing the person. AI often misses it.',sl:'Za to potrebujemo sočutje in poznavanje osebe. UI to pogosto spregleda.'}]];
+const S={introT:{en:'Who does it best?',sl:'Kdo je najboljši?'},
+ intro:{en:'For each task, decide: is AI great at it, is a human better, or are they best together?',sl:'Pri vsakem opravilu se odloči: je UI odlična, je človek boljši ali sta najboljša skupaj?'},
+ q:{en:'Who should do this?',sl:'Kdo naj to naredi?'},
+ good:{en:'Great thinking!',sl:'Odlično razmišljanje!'},meh:{en:'Interesting choice!',sl:'Zanimiva izbira!'},
+ most:{en:'Many people would say:',sl:'Veliko ljudi bi reklo:'},
+ endT:{en:'Your sorting',sl:'Tvoje razvrščanje'},match:{en:'answers matched our suggestion',sl:'odgovorov se ujema z našim predlogom'},
+ note:{en:'There is not always one right answer. Talk about the ones you disagree on!',sl:'Pravilen odgovor ni vedno samo eden. Pogovorite se o tistih, pri katerih se ne strinjate!'},
+ big:{en:'AI is great at fast, repetitive jobs with lots of data. People are better at feelings, fairness and new ideas. The best results often come from working together.',sl:'UI je odlična pri hitrih, ponavljajočih se opravilih z veliko podatki. Ljudje smo boljši pri čustvih, pravičnosti in novih zamislih. Najboljši rezultati pogosto nastanejo s sodelovanjem.'}};
+let k=0,score=0,picks=[];const order=shuffle(TASKS.map((_,i)=>i));
+shell(CFG);
+function intro(){dots(TASKS.length+1,-1);show(`<h1>${L(S.introT)}</h1><p class="lead">${L(S.intro)}</p>
+<div class="art">${svg(300,170,`<path d="M150 150 L134 168 L166 168Z" fill="${C}" stroke="${INK}" stroke-width="2.4"/><rect x="24" y="142" width="252" height="8" rx="4" fill="#fff" stroke="${INK}" stroke-width="2.4" transform="rotate(-3 150 146)"/>${robot(80,96,.95,C)}${kid(222,74,.92,SKIN[0],'#FFC94A','#8A4B22')}<text x="150" y="104" text-anchor="middle" font-family="Baloo 2" font-weight="800" font-size="24" fill="${INK}">?</text>`)}</div>
+<div class="choices three">${B.map((b,i)=>`<div class="choice" style="cursor:default">${ICON[i](C)}${L(b)}</div>`).join('')}</div>
+<div class="spacer"></div><button class="btn" onclick="task()">${L(COMMON.start)}</button>`)}
+function task(){if(k>=TASKS.length)return end();dots(TASKS.length+1,k);const [t]=TASKS[order[k]];
+ show(`<span class="tag">${k+1}/${TASKS.length}</span><h2>${L(S.q)}</h2><div class="task">${esc(L(t))}</div>
+ <div class="choices three">${B.map((b,i)=>`<button class="choice" id="b${i}" onclick="pick(${i})">${ICON[i](C)}${L(b)}</button>`).join('')}</div><div id="fb"></div>`)}
+function pick(i){const [t,a,why]=TASKS[order[k]];picks.push([t,i]);const ok=i===a;if(ok)score++;
+ B.forEach((_,j)=>{const b=$('#b'+j);b.onclick=null;b.classList.add(j===a?'ok':(j===i?'no':'dim'))});
+ if(!ok)$('#b'+i).classList.replace('no','dim');
+ $('#fb').innerHTML=`<div class="fb ${ok?'good':'meh'}"><b>${L(ok?S.good:S.meh)}</b>${ok?'':L(S.most)+' <b style="display:inline;font-size:inherit">'+L(B[a])+'</b>. '}${esc(L(why))}</div><button class="btn" onclick="k++;task()">${L(COMMON.next)}</button>`}
+function end(){dots(TASKS.length+1,TASKS.length);confetti();
+ show(`<h1>${L(S.endT)}</h1><div class="score">${score}/${TASKS.length}</div><p style="text-align:center;font-weight:700">${L(S.match)}</p>
+ <div class="cols">${B.map((b,i)=>`<div><h3>${L(b)}</h3>${picks.filter(p=>p[1]===i).map(p=>`<p>${esc(L(p[0]))}</p>`).join('')}</div>`).join('')}</div>
+ <div class="fb meh">${L(S.note)}</div>${bigIdea(S.big)}<button class="btn ghost" onclick="location.reload()">${L(COMMON.again)}</button>`)}
+intro();
+</script></body></html>

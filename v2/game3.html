@@ -1,0 +1,62 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="common.css"><script src="common.js"></script>
+<style>.data{background:#fff;border-radius:16px;padding:10px 14px;font-size:15px;margin-top:8px}.data p{padding:3px 0;border-bottom:1px dashed #E3E4EE}.data p:last-child{border:0}
+.bars{margin-top:10px}.bar{display:flex;align-items:center;gap:8px;margin:5px 0;font-weight:800}.bar span{width:84px;text-align:right;font-size:15px}.bar i{display:block;height:24px;border-radius:8px;background:var(--c);transition:width .8s}.bar em{font-style:normal;font-family:'Baloo 2'}
+.prompt{font-family:'Baloo 2';font-weight:800;font-size:23px;line-height:1.2;background:#fff;border:3px solid var(--c);border-radius:18px;padding:14px;text-align:center;margin-top:10px}
+.prompt u{text-decoration:none;border-bottom:3px dashed var(--c);padding:0 18px}
+.choices.four{grid-template-columns:1fr 1fr}</style></head><body>
+<script>
+const CFG={n:3,color:'#7B4FE0',tint:'#F0EAFD',title:{en:'Does AI think like a human?',sl:'Ali UI razmišlja kot človek?'}};
+const C=CFG.color;
+const SIDES=[{en:'Human mind',sl:'Človeški um'},{en:'Pattern machine',sl:'Stroj za vzorce'}];
+const SIT=[
+ [{en:'A friend says “I’m fine”, but has tears in their eyes.',sl:'Prijatelj reče »V redu sem«, a ima solze v očeh.'},0,{en:'You need to read feelings, not just words.',sl:'Brati moraš čustva, ne le besede.'}],
+ [{en:'Find every photo with a dog among 10,000 photos.',sl:'Med 10.000 fotografijami najdi vse, na katerih je pes.'},1,{en:'Same task again and again, very fast: a pattern machine is great at this.',sl:'Isto opravilo znova in znova, zelo hitro: stroj za vzorce je pri tem odličen.'}],
+ [{en:'Guess the next number: 3, 6, 9, 12…',sl:'Ugani naslednje število: 3, 6, 9, 12 …'},1,{en:'It is a pattern! +3 every time.',sl:'To je vzorec! Vsakič +3.'}],
+ [{en:'Grandma tells an old joke. Why is it funny to her?',sl:'Babica pove staro šalo. Zakaj se ji zdi smešna?'},0,{en:'Jokes depend on memories, culture and context.',sl:'Šale so odvisne od spominov, kulture in okoliščin.'}],
+ [{en:'Your teacher says “Oh great, more homework!” and rolls her eyes.',sl:'Učiteljica reče »Super, še več domače naloge!« in zavije z očmi.'},0,{en:'That is sarcasm: the words say “great”, the meaning is the opposite.',sl:'To je sarkazem: besede pravijo »super«, pomen je ravno nasproten.'}],
+ [{en:'Finish the list: Monday, Tuesday, Wednesday…',sl:'Dokončaj zaporedje: ponedeljek, torek, sreda …'},1,{en:'Seen millions of times. Easy to predict.',sl:'Videno že milijonkrat. Lahko je napovedati.'}],
+ [{en:'Decide whether to keep a promise to a friend.',sl:'Odloči, ali boš držal(a) obljubo prijatelju.'},0,{en:'Promises are about trust and caring for someone.',sl:'Obljube so povezane z zaupanjem in skrbjo za nekoga.'}],
+ [{en:'Suggest the next song in a playlist.',sl:'Predlagaj naslednjo pesem na seznamu predvajanja.'},1,{en:'It looks at what similar people listened to next.',sl:'Pogleda, kaj so podobni ljudje poslušali naprej.'}]];
+const R=[
+ {data:[[{en:'The cat sat on the mat.',sl:'Mačka je sedela na preprogi.'},3],[{en:'The cat sat on the bed.',sl:'Mačka je sedela na postelji.'},2],[{en:'The cat sat on the sofa.',sl:'Mačka je sedela na kavču.'},1]],
+  prompt:{en:'The cat sat on the',sl:'Mačka je sedela na'},opts:[{en:'mat',sl:'preprogi'},{en:'bed',sl:'postelji'},{en:'sofa',sl:'kavču'},{en:'moon',sl:'Luni'}],counts:[3,2,1,0],
+  why:{en:'The machine just counted: “mat” came most often. No thinking about cats needed!',sl:'Stroj je samo preštel: »preprogi« se je pojavila največkrat. Razmišljanja o mačkah ni bilo treba!'}},
+ {data:[[{en:'Pizza is delicious.',sl:'Pica je slastna.'},3],[{en:'Pizza is tasty.',sl:'Pica je okusna.'},2],[{en:'Pizza is cold.',sl:'Pica je mrzla.'},1]],
+  prompt:{en:'Pizza is',sl:'Pica je'},opts:[{en:'delicious',sl:'slastna'},{en:'tasty',sl:'okusna'},{en:'cold',sl:'mrzla'},{en:'blue',sl:'modra'}],counts:[3,2,1,0],
+  why:{en:'Again it picked the most common word. It has never tasted pizza!',sl:'Spet je izbral najpogostejšo besedo. Pice ni nikoli poskusil!'}},
+ {data:[[{en:'What a great day, I feel happy.',sl:'Super dan, počutim se srečno.'},3],[{en:'Great news, I feel happy.',sl:'Super novica, počutim se srečno.'},2],[{en:'It is raining, I feel sad.',sl:'Dežuje, počutim se žalostno.'},1]],
+  prompt:{en:'Oh great, it’s raining AGAIN! I feel',sl:'Super, spet dežuje! Počutim se'},opts:[{en:'happy',sl:'srečno'},{en:'sad',sl:'žalostno'},{en:'annoyed',sl:'jezno'}],counts:[5,1,0],
+  why:{en:'Oops! The machine saw the word “great” and chose “happy”. A person hears the sarcasm and knows the speaker is annoyed.',sl:'Ups! Stroj je videl besedo »super« in izbral »srečno«. Človek sliši sarkazem in ve, da je govorec jezen.'},trap:true}];
+const S={introT:{en:'Mind or machine?',sl:'Um ali stroj?'},
+ intro:{en:'Part 1: decide if each situation needs a human mind or a pattern machine. Part 2: become a pattern machine yourself!',sl:'1. del: odloči, ali situacija potrebuje človeški um ali stroj za vzorce. 2. del: sam(a) postani stroj za vzorce!'},
+ q:{en:'What does this need?',sl:'Kaj to potrebuje?'},yes:{en:'Yes!',sl:'Tako je!'},hm:{en:'Hmm, think again.',sl:'Hmm, premisli še enkrat.'},
+ p2T:{en:'Be the pattern machine',sl:'Bodi stroj za vzorce'},p2:{en:'A pattern machine reads lots of examples and picks the word that comes up most often. Read the examples, then guess the next word.',sl:'Stroj za vzorce prebere veliko primerov in izbere besedo, ki se pojavi najpogosteje. Preberi primere in ugani naslednjo besedo.'},
+ ex:{en:'Examples the machine read',sl:'Primeri, ki jih je stroj prebral'},guess:{en:'Your guess:',sl:'Tvoj ugib:'},robot:{en:'The machine counted:',sl:'Stroj je preštel:'},picks:{en:'It picks',sl:'Izbere'},times:{en:'×',sl:'×'},
+ endT:{en:'Mind vs machine',sl:'Um proti stroju'},end1:{en:'situations sorted like we would',sl:'situacij razvrščenih kot mi'},
+ big:{en:'AI finds patterns in huge amounts of text and pictures, very fast. But it does not feel, remember or live like you do. It can sound smart without understanding.',sl:'UI zelo hitro najde vzorce v ogromnih količinah besedil in slik. Vendar ne čuti, se ne spominja in ne živi kot ti. Lahko zveni pametno, ne da bi razumela.'}};
+const N=SIT.length+R.length+1;let k=0,score=0,r=0;
+shell(CFG);
+const pair=(c)=>svg(300,150,`<path d="M28 10 h84 a12 12 0 0 1 12 12 v30 a12 12 0 0 1 -12 12 h-50 l-12 12 v-12 h-22 a12 12 0 0 1 -12 -12 v-30 a12 12 0 0 1 12 -12z" fill="#fff" stroke="${INK}" stroke-width="2.2"/><path d="M52 44 C40 34 44 24 52 30 C60 24 64 34 52 44Z" fill="#F0597A"/><circle cx="84" cy="36" r="9" fill="#FFD25A" stroke="${INK}" stroke-width="1.8"/>
+<path d="M196 10 h84 a12 12 0 0 1 12 12 v30 a12 12 0 0 1 -12 12 h-22 v12 l-12 -12 h-50 a12 12 0 0 1 -12 -12 v-30 a12 12 0 0 1 12 -12z" fill="#fff" stroke="${INK}" stroke-width="2.2"/>${[...Array(15)].map((_,i)=>`<rect x="${210+(i%5)*13}" y="${20+Math.floor(i/5)*12}" width="9" height="9" rx="2" fill="${i%3?c:INK}" opacity="${i%2?1:.45}"/>`).join('')}
+${kid(70,98,.85,SKIN[2],'#36B37E')}${robot(232,106,.85,c,'flat')}`);
+function intro(){dots(N,-1);show(`<h1>${L(S.introT)}</h1><p class="lead">${L(S.intro)}</p><div class="art">${pair(C)}</div><div class="spacer"></div><button class="btn" onclick="sit()">${L(COMMON.start)}</button>`)}
+function sit(){if(k>=SIT.length)return p2intro();dots(N,k);const [t]=SIT[k];
+ show(`<span class="tag">${k+1}/${SIT.length}</span><h2>${L(S.q)}</h2><div class="task">${esc(L(t))}</div>
+ <div class="choices two"><button class="choice" id="b0" onclick="pick(0)">${svg(100,100,kid(50,42,.9,SKIN[2],'#36B37E'))}${L(SIDES[0])}</button><button class="choice" id="b1" onclick="pick(1)">${svg(100,100,robot(50,56,1,C,'flat'))}${L(SIDES[1])}</button></div><div id="fb"></div>`)}
+function pick(i){const [,a,why]=SIT[k];const ok=i===a;if(ok)score++;[0,1].forEach(j=>{const b=$('#b'+j);b.onclick=null;b.classList.add(j===a?'ok':'dim')});
+ $('#fb').innerHTML=`<div class="fb ${ok?'good':'meh'}"><b>${L(ok?S.yes:S.hm)}</b>${esc(L(why))}</div><button class="btn" onclick="k++;sit()">${L(COMMON.next)}</button>`}
+function p2intro(){dots(N,SIT.length);show(`<h1>${L(S.p2T)}</h1><p class="lead">${L(S.p2)}</p><div class="art">${svg(300,140,`${robot(150,84,1.15,C,'o')}${sparkle(60,40,1,C)}${sparkle(240,36,.8,INK)}<text x="70" y="110" font-family="Baloo 2" font-weight="800" font-size="22" fill="${C}">1 2 3</text>`)}</div><div class="spacer"></div><button class="btn" onclick="round()">${L(COMMON.start)}</button>`)}
+function round(){if(r>=R.length)return end();dots(N,SIT.length+r+1);const x=R[r];
+ show(`<span class="tag">${r+1}/${R.length}</span><h3 style="margin-top:6px">${L(S.ex)}</h3><div class="data">${x.data.map(([s,n])=>`<p>${esc(L(s))} <b style="color:var(--c)">${S.times[LANG]||'×'}${n}</b></p>`).join('')}</div>
+ <div class="prompt">${esc(L(x.prompt))} <u>?</u></div><p style="margin-top:10px;font-weight:800">${L(S.guess)}</p>
+ <div class="choices four">${x.opts.map((o,i)=>`<button class="choice" id="o${i}" onclick="guess(${i})">${esc(L(o))}</button>`).join('')}</div><div id="fb"></div>`)}
+function guess(i){const x=R[r];const max=Math.max(...x.counts);const top=x.counts.indexOf(max);
+ x.opts.forEach((_,j)=>{const b=$('#o'+j);b.onclick=null;if(j===i)b.style.borderColor='var(--c)',b.style.background='var(--t)';else b.classList.add('dim')});
+ $('#fb').innerHTML=`<div class="box"><h3>${L(S.robot)}</h3><div class="bars">${x.opts.map((o,j)=>`<div class="bar"><span>${esc(L(o))}</span><i style="width:0" data-w="${x.counts[j]/max*60}%"></i><em>${x.counts[j]}</em></div>`).join('')}</div>
+ <div class="bubble" style="margin-top:10px">${L(S.picks)}: “${esc(L(x.opts[top]))}”</div></div>
+ <div class="fb ${x.trap?'bad':'good'}">${esc(L(x.why))}</div><button class="btn" onclick="r++;round()">${L(COMMON.next)}</button>`;
+ setTimeout(()=>document.querySelectorAll('.bar i').forEach(e=>e.style.width=e.dataset.w),50)}
+function end(){dots(N,N);confetti();show(`<h1>${L(S.endT)}</h1><div class="score">${score}/${SIT.length}</div><p style="text-align:center;font-weight:700">${L(S.end1)}</p>
+<div class="art">${pair(C)}</div>${bigIdea(S.big)}<button class="btn ghost" onclick="location.reload()">${L(COMMON.again)}</button>`)}
+intro();
+</script></body></html>
