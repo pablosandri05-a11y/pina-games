@@ -1,0 +1,24 @@
+AI LITERACY CARDS 1-18 (LEVELS 1 AND 2): NOTES
+
+1) Files
+- AI_Literacy_Cards_1-18_SL_A6.pdf / _EN_A6.pdf: one A6 card per page (front, then back). Good for a print shop.
+- AI_Literacy_Cards_1-18_SL_print_A4_duplex.pdf / _EN_: 4 cards per A4 sheet. Print double-sided, flip on the long edge, cut along the dashed lines.
+- AI_Literacy_Cards_1-18_SL_activity_sheets_A4.pdf / _EN_: all ready-to-print classroom materials (task cards, scenario cards, room signs, pictures, worksheets) plus a 3-question teacher feedback form at the end.
+
+2) Games
+- Every card has a QR code to a game. The games are new, work on phones and tablets, and need no login.
+- Slovenian cards open the Slovenian version, English cards the English one. There is an EN/SL switch at the top.
+- All games: https://pablosandri05-a11y.github.io/pina-games/v2/index.html?lang=sl
+
+3) For the Slovenian proofreader
+- The Slovenian text was translated with AI and has not yet been checked by a native speaker. Please check the cards, the activity sheets and the games.
+- "UI" is used for umetna inteligenca throughout (feminine: "UI je dobra").
+- Teacher text uses the polite plural ("Vprašajte", "Pokažite"); student text uses "ti".
+- Gender forms are written as "prepričan(a)". Change if PiNA prefers another style.
+- Card 15 has a short poem in Slovenian: it is a free translation, please adjust it freely.
+
+4) Notes on content
+- Card 12: all example texts were written for the activity to show typical clues. Detectors are presented as unreliable on purpose.
+- Card 15: poem A was written by an AI; poem B should be a poem by a student or a local poet.
+- Card 16: "ChatPal" is an invented example app.
+- Level 3 (cards 19-23) will follow later.
