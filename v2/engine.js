@@ -7,7 +7,7 @@
     score: { en: 'Your score', sl: 'Tvoj rezultat' }, done: { en: 'Well done!', sl: 'Bravo!' }, ask: { en: 'Talk about it', sl: 'Pogovorite se' },
     wrongOrder: { en: 'Not yet! What comes first?', sl: 'Še ne! Kaj pride najprej?' }, yourOrder: { en: 'Your order', sl: 'Tvoj vrstni red' }, realOrder: { en: 'The answer', sl: 'Rešitev' },
     check: { en: 'Check', sl: 'Preveri' }, chosen: { en: 'chosen', sl: 'izbranih' }, again: { en: 'Choose again', sl: 'Izberi znova' }, tryRule: { en: 'Try another rule, or go on.', sl: 'Preizkusi drugo pravilo ali nadaljuj.' },
-    stars: { en: 'Prompt quality', sl: 'Kakovost navodila' }, answer: { en: 'AI answer', sl: 'Odgovor UI' }, prompt: { en: 'Your prompt', sl: 'Tvoje navodilo' }, stickers: { en: 'stickers', sl: 'nalepk' },
+    stars: { en: 'Close to what you wanted', sl: 'Kako blizu je tvoji želji' }, answer: { en: 'AI answer', sl: 'Odgovor UI' }, prompt: { en: 'Your prompt', sl: 'Tvoje navodilo' }, stickers: { en: 'stickers', sl: 'nalepk' },
     terms: { en: 'Show the terms', sl: 'Pokaži pogoje' }
   };
   let si = 0, got = 0, max = 0;
